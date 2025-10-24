@@ -362,18 +362,40 @@
                     submitBtn.disabled = true;
                     submitBtn.innerHTML = 'Joining...';
 
-                    // Simulate success without any API calls
-                    console.log('Email submitted:', email);
-                    document.getElementById('modalContent').innerHTML = getSuccessHTML();
-                    
-                    // Auto close after 3 seconds
-                    setTimeout(() => {
-                        closeModal();
-                    }, 3000);
-                    
-                    // Reset button
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = 'Join Waitlist';
+                    try {
+                        console.log('Sending email:', email);
+                        
+                        const response = await fetch('/api/register', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ email }),
+                        });
+
+                        console.log('Response status:', response.status);
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            console.log('Success:', result);
+                            document.getElementById('modalContent').innerHTML = getSuccessHTML();
+                            
+                            setTimeout(() => {
+                                closeModal();
+                            }, 3000);
+                        } else {
+                            const errorText = await response.text();
+                            console.error('Error response:', errorText);
+                            alert('Registration failed. Please try again.');
+                        }
+
+                    } catch (error) {
+                        console.error('Network error:', error);
+                        alert('Connection error. Please try again.');
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = 'Join Waitlist';
+                    }
                 }
             });
         });
