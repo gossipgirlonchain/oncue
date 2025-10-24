@@ -363,19 +363,30 @@
                     submitBtn.innerHTML = 'Joining...';
 
                     try {
-                        // For now, just show success (no API call)
+                        const response = await fetch('/api/register', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ email }),
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || 'Registration failed');
+                        }
+
+                        // Show success
+                        document.getElementById('modalContent').innerHTML = getSuccessHTML();
+                        
+                        // Auto close after 3 seconds
                         setTimeout(() => {
-                            document.getElementById('modalContent').innerHTML = getSuccessHTML();
-                            
-                            // Auto close after 3 seconds
-                            setTimeout(() => {
-                                closeModal();
-                            }, 3000);
-                        }, 1000);
+                            closeModal();
+                        }, 3000);
 
                     } catch (error) {
                         console.error('Registration error:', error);
-                        alert('Failed to register. Please try again.');
+                        alert(error.message || 'Failed to register. Please try again.');
                     } finally {
                         // Reset button
                         submitBtn.disabled = false;
