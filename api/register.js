@@ -39,8 +39,8 @@ module.exports = async (req, res) => {
     
     console.log('Email saved:', result.rows[0]);
     
-    // Redirect to homepage with success
-    res.writeHead(302, { 'Location': '/' });
+    // Redirect to countdown page with success
+    res.writeHead(302, { 'Location': '/countdown.html' });
     res.end();
     
   } catch (error) {

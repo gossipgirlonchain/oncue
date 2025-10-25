@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CUE - Countdown</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            background: radial-gradient(ellipse at center, #f5f5f5 0%, #e8e8e8 25%, #d1d1d1 50%, #b8b8b8 75%, #a0a0a0 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .logo {
+            margin-bottom: 2rem;
+        }
+
+        .logo img {
+            height: 48px;
+            width: auto;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 20%, #e9ecef 80%, #dee2e6 100%);
+            border: 2px solid #adb5bd;
+            border-top-color: #f8f9fa;
+            border-left-color: #f8f9fa;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.4), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.9), 
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 2rem;
+        }
+
+        .success-message h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 16px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .success-message p {
+            color: #6b7280;
+            font-size: 18px;
+            margin-bottom: 32px;
+            text-shadow: 0 1px 1px rgba(255,255,255,0.8);
+        }
+
+        .countdown-container {
+            background: linear-gradient(135deg, #ec4899 0%, #db2777 20%, #be185d 80%, #9d174d 100%);
+            border: 1px solid #9d174d;
+            border-bottom: 3px solid #7c2d57;
+            border-right: 2px solid #7c2d57;
+            box-shadow: 
+                0 0 20px rgba(236, 72, 153, 0.3),
+                0 4px 8px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 2rem;
+        }
+
+        .countdown-title {
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+        }
+
+        .countdown-display {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .countdown-item {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            min-width: 80px;
+            backdrop-filter: blur(10px);
+        }
+
+        .countdown-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            display: block;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .countdown-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 2rem;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .countdown-display {
+                gap: 12px;
+            }
+            
+            .countdown-item {
+                min-width: 60px;
+                padding: 16px;
+            }
+            
+            .countdown-number {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo -->
+        <div class="logo">
+            <img src="cue.png" alt="CUE Logo">
+        </div>
+
+        <!-- Success Message -->
+        <div class="success-message">
+            <h1>You're In! 🎉</h1>
+            <p>Welcome to the CUE waitlist. You'll be the first to know when we launch.</p>
+        </div>
+
+        <!-- Countdown -->
+        <div class="countdown-container">
+            <h2 class="countdown-title">Launch Countdown</h2>
+            <div class="countdown-display">
+                <div class="countdown-item">
+                    <span class="countdown-number" id="days">0</span>
+                    <div class="countdown-label">Days</div>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number" id="hours">0</span>
+                    <div class="countdown-label">Hours</div>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number" id="minutes">0</span>
+                    <div class="countdown-label">Minutes</div>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number" id="seconds">0</span>
+                    <div class="countdown-label">Seconds</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>© 2024 CUE. All rights reserved.</p>
+    </div>
+
+    <script>
+        // Set the target date to November 7th, 2024
+        const targetDate = new Date('November 7, 2024 00:00:00').getTime();
+
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            if (distance < 0) {
+                // Countdown finished
+                document.getElementById('days').innerHTML = '0';
+                document.getElementById('hours').innerHTML = '0';
+                document.getElementById('minutes').innerHTML = '0';
+                document.getElementById('seconds').innerHTML = '0';
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById('days').innerHTML = days;
+            document.getElementById('hours').innerHTML = hours;
+            document.getElementById('minutes').innerHTML = minutes;
+            document.getElementById('seconds').innerHTML = seconds;
+        }
+
+        // Update countdown immediately and then every second
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+    </script>
+</body>
+</html>
