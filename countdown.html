@@ -133,7 +133,7 @@
                 opacity: 1;
             }
             100% {
-                transform: translate(var(--end-x), var(--end-y)) rotate(360deg) scale(0);
+                transform: translate(var(--end-x, 100px), var(--end-y, -100px)) rotate(360deg) scale(0);
                 opacity: 0;
             }
         }
@@ -312,6 +312,7 @@
 
         // Click confetti effect
         function createClickConfetti(event) {
+            console.log('Click detected at:', event.clientX, event.clientY);
             const emojis = ['✨', '💕', '🎉', '💖', '⭐', '🌟'];
             const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'];
             
@@ -336,8 +337,8 @@
                     const endY = event.clientY + Math.sin(angle * Math.PI / 180) * distance;
                     
                     confetti.style.animation = `confetti-burst 1.5s ease-out forwards`;
-                    confetti.style.setProperty('--end-x', endX + 'px');
-                    confetti.style.setProperty('--end-y', endY + 'px');
+                    confetti.style.setProperty('--end-x', (endX - event.clientX) + 'px');
+                    confetti.style.setProperty('--end-y', (endY - event.clientY) + 'px');
                     
                     document.body.appendChild(confetti);
                     
