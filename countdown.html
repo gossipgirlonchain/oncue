@@ -188,12 +188,16 @@
     </div>
 
     <script>
+        console.log('Countdown page loaded');
+        
         // Set the target date to November 7th, 2024
         const targetDate = new Date('November 7, 2024 00:00:00').getTime();
+        console.log('Target date:', new Date(targetDate));
 
         function updateCountdown() {
             const now = new Date().getTime();
             const distance = targetDate - now;
+            console.log('Time remaining:', distance);
 
             if (distance < 0) {
                 // Countdown finished
@@ -208,6 +212,8 @@
             const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            console.log('Countdown:', days, hours, minutes, seconds);
 
             document.getElementById('days').innerHTML = days;
             document.getElementById('hours').innerHTML = hours;
