@@ -106,18 +106,66 @@
             font-size: 12px;
         }
 
-        @media (max-width: 480px) {
+        @media (max-width: 768px) {
             .countdown-display {
-                gap: 12px;
+                gap: 4px;
+                flex-wrap: nowrap;
+                justify-content: center;
             }
             
             .countdown-item {
-                min-width: 60px;
-                padding: 16px;
+                min-width: 50px;
+            }
+            
+            .countdown-number {
+                font-size: 32px;
+            }
+            
+            .countdown-separator {
+                font-size: 32px;
+                margin: 0 2px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .countdown-display {
+                gap: 2px;
+                flex-wrap: nowrap;
+                justify-content: center;
+            }
+            
+            .countdown-item {
+                min-width: 40px;
             }
             
             .countdown-number {
                 font-size: 24px;
+            }
+            
+            .countdown-separator {
+                font-size: 24px;
+                margin: 0 1px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .countdown-display {
+                gap: 1px;
+                flex-wrap: nowrap;
+                justify-content: center;
+            }
+            
+            .countdown-item {
+                min-width: 35px;
+            }
+            
+            .countdown-number {
+                font-size: 20px;
+            }
+            
+            .countdown-separator {
+                font-size: 20px;
+                margin: 0 1px;
             }
         }
     </style>
