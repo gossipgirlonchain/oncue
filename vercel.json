@@ -10,6 +10,10 @@
       "use": "@vercel/static"
     },
     {
+      "src": "*.png",
+      "use": "@vercel/static"
+    },
+    {
       "src": "api/register.js",
       "use": "@vercel/node"
     }
@@ -22,6 +26,10 @@
     {
       "src": "/countdown.html",
       "dest": "/countdown.html"
+    },
+    {
+      "src": "/(.*\\.png)",
+      "dest": "/$1"
     },
     {
       "src": "/api/register",
