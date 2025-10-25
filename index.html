@@ -235,6 +235,38 @@
                 inset 0 1px 3px rgba(0, 0, 0, 0.2);
             transform: translateY(2px) scale(0.98);
         }
+
+        /* Confetti Animation */
+        .confetti {
+            position: fixed;
+            top: -10px;
+            font-size: 20px;
+            pointer-events: none;
+            z-index: 1000;
+            animation: confetti-fall linear forwards;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes confetti-burst {
+            0% {
+                transform: translate(0, 0) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--end-x, 100px), var(--end-y, -100px)) rotate(360deg) scale(0);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -290,6 +322,81 @@
         function closeModal() {
             document.getElementById('modal').classList.remove('show');
         }
+
+        // Confetti animation
+        function createConfetti() {
+            const emojis = ['✨', '💕', '🎉', '💖', '⭐', '🌟'];
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'];
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                    confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.fontSize = (Math.random() * 10 + 15) + 'px';
+                    
+                    document.body.appendChild(confetti);
+                    
+                    // Remove confetti after animation
+                    setTimeout(() => {
+                        if (confetti.parentNode) {
+                            confetti.parentNode.removeChild(confetti);
+                        }
+                    }, 5000);
+                }, i * 50);
+            }
+        }
+
+        // Click confetti effect
+        function createClickConfetti(event) {
+            console.log('Click detected at:', event.clientX, event.clientY);
+            const emojis = ['✨', '💕', '🎉', '💖', '⭐', '🌟'];
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'];
+            
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    confetti.style.left = (event.clientX + (Math.random() - 0.5) * 100) + 'px';
+                    confetti.style.top = (event.clientY + (Math.random() - 0.5) * 100) + 'px';
+                    confetti.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                    confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.fontSize = (Math.random() * 8 + 12) + 'px';
+                    confetti.style.position = 'fixed';
+                    confetti.style.pointerEvents = 'none';
+                    confetti.style.zIndex = '1000';
+                    
+                    // Random direction for burst effect
+                    const angle = Math.random() * 360;
+                    const distance = Math.random() * 100 + 50;
+                    const endX = event.clientX + Math.cos(angle * Math.PI / 180) * distance;
+                    const endY = event.clientY + Math.sin(angle * Math.PI / 180) * distance;
+                    
+                    confetti.style.animation = `confetti-burst 1.5s ease-out forwards`;
+                    confetti.style.setProperty('--end-x', (endX - event.clientX) + 'px');
+                    confetti.style.setProperty('--end-y', (endY - event.clientY) + 'px');
+                    
+                    document.body.appendChild(confetti);
+                    
+                    // Remove confetti after animation
+                    setTimeout(() => {
+                        if (confetti.parentNode) {
+                            confetti.parentNode.removeChild(confetti);
+                        }
+                    }, 2000);
+                }, i * 30);
+            }
+        }
+
+        // Start confetti animation when page loads
+        createConfetti();
+
+        // Add click event listener
+        document.addEventListener('click', createClickConfetti);
     </script>
 </body>
 </html>
