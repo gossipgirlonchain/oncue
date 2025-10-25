@@ -15,16 +15,28 @@ module.exports = async (req, res) => {
 
       console.log('Valid email received:', email);
 
-      // Try to connect to database
+      // Use direct PostgreSQL connection instead of Neon package
       try {
-        const { neon } = require('@neondatabase/serverless');
-        const sql = neon(process.env.DATABASE_URL);
+        const { Client } = require('pg');
+        const client = new Client({
+          connectionString: process.env.DATABASE_URL
+        });
+        
+        await client.connect();
+        console.log('Connected to database');
         
         const cleanEmail = email.trim().toLowerCase();
-        await sql`INSERT INTO signups (email) VALUES (${cleanEmail})`;
-        console.log('Email saved to database:', cleanEmail);
+        const result = await client.query(
+          'INSERT INTO signups (email) VALUES ($1) RETURNING id, email, created_at',
+          [cleanEmail]
+        );
+        
+        console.log('Email saved to database:', result.rows[0]);
+        await client.end();
+        
       } catch (dbError) {
-        console.log('Database error (continuing anyway):', dbError.message);
+        console.log('Database error:', dbError.message);
+        // Continue anyway - don't crash the function
       }
 
       return res.redirect(302, 'https://oncue.market/?success=true');
