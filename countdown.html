@@ -280,40 +280,14 @@
         updateCountdown();
         setInterval(updateCountdown, 1000);
 
-        // Confetti animation
-        function createConfetti() {
-            const emojis = ['✨', '💕', '🎉', '💖', '⭐', '🌟'];
-            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'];
-            
-            for (let i = 0; i < 50; i++) {
-                setTimeout(() => {
-                    const confetti = document.createElement('div');
-                    confetti.className = 'confetti';
-                    confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                    confetti.style.left = Math.random() * 100 + 'vw';
-                    confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
-                    confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
-                    confetti.style.fontSize = (Math.random() * 10 + 15) + 'px';
-                    
-                    document.body.appendChild(confetti);
-                    
-                    // Remove confetti after animation
-                    setTimeout(() => {
-                        if (confetti.parentNode) {
-                            confetti.parentNode.removeChild(confetti);
-                        }
-                    }, 5000);
-                }, i * 50);
-            }
-        }
+        // Confetti animation - removed waterfall effect
 
-        // Start confetti animation when page loads
-        createConfetti();
+        // No automatic confetti on page load
 
         // Click confetti effect
         function createClickConfetti(event) {
             console.log('Click detected at:', event.clientX, event.clientY);
-            const emojis = ['✨', '💕', '🎉', '💖', '⭐', '🌟'];
+            const emojis = ['❤️', '💚', '📈', '📉'];
             const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'];
             
             for (let i = 0; i < 15; i++) {
