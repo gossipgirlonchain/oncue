@@ -6,6 +6,10 @@
       "use": "@vercel/static"
     },
     {
+      "src": "countdown.html",
+      "use": "@vercel/static"
+    },
+    {
       "src": "api/register.js",
       "use": "@vercel/node"
     }
@@ -14,6 +18,10 @@
     {
       "src": "/",
       "dest": "/index.html"
+    },
+    {
+      "src": "/countdown.html",
+      "dest": "/countdown.html"
     },
     {
       "src": "/api/register",
