@@ -2,7 +2,7 @@ const { neon } = require('@neondatabase/serverless');
 
 const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   console.log('API called:', req.method, req.body);
   
   if (req.method === 'POST') {
@@ -30,4 +30,4 @@ export default async function handler(req, res) {
   }
   
   return res.status(405).send('Method not allowed');
-}
+};
