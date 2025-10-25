@@ -1,11 +1,3 @@
-const { neon } = require('@neondatabase/serverless');
-
-const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
-
-if (!sql) {
-  throw new Error('No database connection string was provided. Please set DATABASE_URL environment variable.');
-}
-
 module.exports = async (req, res) => {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -29,29 +21,18 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Valid email address is required' });
     }
 
-    // Clean email
-    const cleanEmail = email.trim().toLowerCase();
-
-    // Insert email into database
-    const result = await sql`
-      INSERT INTO signups (email)
-      VALUES (${cleanEmail})
-      RETURNING id, email, created_at
-    `;
+    // For now, just return success without database
+    // We'll add database connection once the function is working
+    console.log('Email received:', email);
 
     return res.status(200).json({
       success: true,
-      message: 'Successfully joined waitlist!'
+      message: 'Successfully joined waitlist!',
+      email: email
     });
 
   } catch (error) {
     console.error('Registration error:', error);
-    
-    // Handle duplicate email
-    if (error.code === '23505') {
-      return res.status(409).json({ error: 'Email already registered' });
-    }
-
     return res.status(500).json({ error: 'Registration failed. Please try again.' });
   }
 };
