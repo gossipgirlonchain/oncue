@@ -54,6 +54,31 @@
             cursor: pointer;
             transition: all 0.2s;
             font-size: 16px;
+            animation: button-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes button-pulse {
+            0% {
+                box-shadow: 
+                    0 0 20px rgba(236, 72, 153, 0.3),
+                    0 4px 8px rgba(0, 0, 0, 0.1),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                    inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+            }
+            50% {
+                box-shadow: 
+                    0 0 30px rgba(236, 72, 153, 0.6),
+                    0 4px 8px rgba(0, 0, 0, 0.1),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                    inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+            }
+            100% {
+                box-shadow: 
+                    0 0 20px rgba(236, 72, 153, 0.3),
+                    0 4px 8px rgba(0, 0, 0, 0.1),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                    inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+            }
         }
 
         .button:hover {
