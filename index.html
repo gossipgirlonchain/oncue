@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
     <title>CUE</title>
     <style>
         * {
@@ -361,24 +362,22 @@
                     const confetti = document.createElement('div');
                     confetti.className = 'confetti';
                     confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                    confetti.style.left = (event.clientX + (Math.random() - 0.5) * 100) + 'px';
-                    confetti.style.top = (event.clientY + (Math.random() - 0.5) * 100) + 'px';
-                    confetti.style.animationDuration = (Math.random() * 2 + 1) + 's';
-                    confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
-                    confetti.style.fontSize = (Math.random() * 8 + 12) + 'px';
-                    confetti.style.position = 'fixed';
-                    confetti.style.pointerEvents = 'none';
-                    confetti.style.zIndex = '1000';
                     
-                    // Random direction for burst effect
+                    // Use dataset instead of inline styles for CSP compliance
                     const angle = Math.random() * 360;
                     const distance = Math.random() * 100 + 50;
-                    const endX = event.clientX + Math.cos(angle * Math.PI / 180) * distance;
-                    const endY = event.clientY + Math.sin(angle * Math.PI / 180) * distance;
+                    const endX = (Math.cos(angle * Math.PI / 180) * distance);
+                    const endY = (Math.sin(angle * Math.PI / 180) * distance);
                     
-                    confetti.style.animation = `confetti-burst 1.5s ease-out forwards`;
-                    confetti.style.setProperty('--end-x', (endX - event.clientX) + 'px');
-                    confetti.style.setProperty('--end-y', (endY - event.clientY) + 'px');
+                    confetti.setAttribute('data-start-x', event.clientX.toString());
+                    confetti.setAttribute('data-start-y', event.clientY.toString());
+                    confetti.setAttribute('data-end-x', endX.toString());
+                    confetti.setAttribute('data-end-y', endY.toString());
+                    
+                    // Position and style using CSS classes
+                    const left = (event.clientX + (Math.random() - 0.5) * 100) + 'px';
+                    const top = (event.clientY + (Math.random() - 0.5) * 100) + 'px';
+                    confetti.style.cssText = `position: fixed; left: ${left}; top: ${top}; pointer-events: none; z-index: 1000; font-size: ${(Math.random() * 8 + 12)}px; color: ${colors[Math.floor(Math.random() * colors.length)]}; animation: confetti-burst 1.5s ease-out forwards;`;
                     
                     document.body.appendChild(confetti);
                     
