@@ -20,15 +20,18 @@ module.exports = async (req, res) => {
     console.log('Headers:', JSON.stringify(req.headers));
     
     // Parse request body
-    let email;
+    let bodyData;
     if (typeof req.body === 'string') {
-      const parsed = JSON.parse(req.body);
-      email = parsed.email;
+      bodyData = JSON.parse(req.body);
     } else {
-      email = req.body.email;
+      bodyData = req.body;
     }
     
-    console.log('Email received:', email);
+    const email = bodyData.email;
+    const archetype = bodyData.archetype || null; // e.g., 'insider', 'archivist', etc.
+    const starSign = bodyData.starSign || null; // e.g., 'Gemini', 'Virgo', etc.
+    
+    console.log('Data received:', { email, archetype, starSign });
     
     if (!email || !email.includes('@')) {
       console.error('Invalid email format');
@@ -60,14 +63,30 @@ module.exports = async (req, res) => {
     console.log('Database connected successfully');
     
     const cleanEmail = email.trim().toLowerCase();
-    console.log('Inserting email:', cleanEmail);
+    console.log('Inserting data:', { email: cleanEmail, archetype, starSign });
     
-    const result = await client.query(
-      'INSERT INTO signups (email) VALUES ($1) RETURNING id, email, created_at',
-      [cleanEmail]
-    );
+    // Check if columns exist, if not use basic insert
+    let result;
+    try {
+      // Try to insert with archetype and star_sign (for quiz results)
+      result = await client.query(
+        'INSERT INTO signups (email, archetype, star_sign) VALUES ($1, $2, $3) RETURNING id, email, archetype, star_sign, created_at',
+        [cleanEmail, archetype, starSign]
+      );
+    } catch (err) {
+      // If columns don't exist, try basic insert
+      if (err.code === '42703' || err.message.includes('column')) {
+        console.log('Quiz result columns not found, using basic insert');
+        result = await client.query(
+          'INSERT INTO signups (email) VALUES ($1) RETURNING id, email, created_at',
+          [cleanEmail]
+        );
+      } else {
+        throw err;
+      }
+    }
     
-    console.log('Email saved successfully:', result.rows[0]);
+    console.log('Data saved successfully:', result.rows[0]);
     
     await client.end();
     console.log('Database connection closed');
