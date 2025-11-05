@@ -16,6 +16,9 @@ module.exports = async (req, res) => {
   }
 
   try {
+    console.log('API called, method:', req.method);
+    console.log('Headers:', JSON.stringify(req.headers));
+    
     // Parse request body
     let email;
     if (typeof req.body === 'string') {
@@ -25,7 +28,10 @@ module.exports = async (req, res) => {
       email = req.body.email;
     }
     
+    console.log('Email received:', email);
+    
     if (!email || !email.includes('@')) {
+      console.error('Invalid email format');
       const isJsonRequest = req.headers['content-type'] === 'application/json';
       if (isJsonRequest) {
         return res.status(400).json({ success: false, error: 'Valid email required' });
@@ -35,30 +41,36 @@ module.exports = async (req, res) => {
 
     // Check if DATABASE_URL is set
     if (!process.env.DATABASE_URL) {
-      console.error('DATABASE_URL not set');
+      console.error('DATABASE_URL not set in environment variables');
       const isJsonRequest = req.headers['content-type'] === 'application/json';
       if (isJsonRequest) {
-        return res.status(500).json({ success: false, error: 'Database connection not configured' });
+        return res.status(500).json({ success: false, error: 'Database connection not configured. Please set DATABASE_URL in Vercel environment variables.' });
       }
       return res.status(500).json({ error: 'Database connection not configured' });
     }
 
+    console.log('Connecting to database...');
+    
     // Connect to database and insert email
     const client = new Client({
       connectionString: process.env.DATABASE_URL
     });
     
     await client.connect();
+    console.log('Database connected successfully');
     
     const cleanEmail = email.trim().toLowerCase();
+    console.log('Inserting email:', cleanEmail);
+    
     const result = await client.query(
       'INSERT INTO signups (email) VALUES ($1) RETURNING id, email, created_at',
       [cleanEmail]
     );
     
-    await client.end();
+    console.log('Email saved successfully:', result.rows[0]);
     
-    console.log('Email saved:', result.rows[0]);
+    await client.end();
+    console.log('Database connection closed');
     
     // Check if request expects JSON (from quiz/fetch) or HTML redirect (from form)
     const isJsonRequest = req.headers['content-type'] === 'application/json' || 
