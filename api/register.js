@@ -16,22 +16,36 @@ module.exports = async (req, res) => {
   }
 
   try {
-    console.log('API called, method:', req.method);
-    console.log('Headers:', JSON.stringify(req.headers));
+    console.log('=== API CALLED ===');
+    console.log('Method:', req.method);
+    console.log('Content-Type:', req.headers['content-type']);
+    console.log('Body type:', typeof req.body);
+    console.log('Raw body:', req.body);
     
-    // Parse request body
-    let bodyData;
-    if (typeof req.body === 'string') {
-      bodyData = JSON.parse(req.body);
-    } else {
-      bodyData = req.body;
+    // Parse request body - Vercel parses JSON automatically
+    let bodyData = {};
+    try {
+      if (typeof req.body === 'string') {
+        bodyData = JSON.parse(req.body);
+      } else if (req.body && typeof req.body === 'object') {
+        bodyData = req.body;
+      } else {
+        console.error('Unexpected body type:', typeof req.body);
+        return res.status(400).json({ success: false, error: 'Invalid request body format' });
+      }
+    } catch (parseError) {
+      console.error('Error parsing body:', parseError);
+      return res.status(400).json({ success: false, error: 'Invalid request body' });
     }
     
     const email = bodyData.email;
     const archetype = bodyData.archetype || null; // e.g., 'insider', 'archivist', etc.
     const starSign = bodyData.starSign || null; // e.g., 'Gemini', 'Virgo', etc.
     
-    console.log('Data received:', { email, archetype, starSign });
+    console.log('Parsed data:', { email, archetype, starSign });
+    console.log('Email exists:', !!email);
+    console.log('Archetype:', archetype);
+    console.log('Star sign:', starSign);
     
     if (!email || !email.includes('@')) {
       console.error('Invalid email format');
@@ -53,10 +67,15 @@ module.exports = async (req, res) => {
     }
 
     console.log('Connecting to database...');
+    console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+    console.log('DATABASE_URL length:', process.env.DATABASE_URL ? process.env.DATABASE_URL.length : 0);
     
     // Connect to database and insert email
     const client = new Client({
-      connectionString: process.env.DATABASE_URL
+      connectionString: process.env.DATABASE_URL,
+      ssl: {
+        rejectUnauthorized: false // Required for Neon
+      }
     });
     
     try {

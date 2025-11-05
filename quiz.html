@@ -1009,6 +1009,18 @@
             const result = calculateResult();
             const archetypeKey = Object.keys(archetypes).find(key => archetypes[key].label === result.label);
             
+            const requestData = { 
+                email,
+                archetype: archetypeKey || null,
+                starSign: starSign || null
+            };
+            
+            console.log('=== SUBMITTING EMAIL ===');
+            console.log('Email:', email);
+            console.log('Archetype key:', archetypeKey);
+            console.log('Star sign:', starSign);
+            console.log('Request data:', requestData);
+            
             // Disable button and show loading
             submitBtn.disabled = true;
             submitBtn.textContent = 'Loading...';
@@ -1020,12 +1032,11 @@
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify({ 
-                        email,
-                        archetype: archetypeKey || null,
-                        starSign: starSign || null
-                    })
+                    body: JSON.stringify(requestData)
                 });
+                
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
                 
                 const responseStatus = response.status;
                 const responseOk = response.ok;
