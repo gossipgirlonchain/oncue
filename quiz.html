@@ -962,7 +962,13 @@
                     body: JSON.stringify({ email })
                 });
                 
-                const data = await response.json();
+                let data = {};
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    // Response is not JSON, might be HTML error page
+                    console.log('Response not JSON, proceeding to show results');
+                }
                 
                 if (response.ok && data.success) {
                     // Hide email collection and show results
@@ -970,15 +976,17 @@
                     showResult();
                     showToast('Email saved! 🎉');
                 } else {
-                    showToast(data.message || 'Something went wrong. Please try again.');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = originalText;
+                    // Still show results even if email save failed
+                    document.querySelector('.email-collection-container').classList.remove('active');
+                    showResult();
+                    showToast('Result shown, but email may not have been saved');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                showToast('Something went wrong. Please try again.');
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
+                // Still show results even if API call failed (e.g., network error)
+                document.querySelector('.email-collection-container').classList.remove('active');
+                showResult();
+                showToast('Result shown, but email may not have been saved');
             }
         }
 
