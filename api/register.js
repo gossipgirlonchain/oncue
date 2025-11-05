@@ -111,7 +111,13 @@ module.exports = async (req, res) => {
         }
       }
       
-      console.log('Data saved successfully:', result.rows[0]);
+      console.log('=== DATA SAVED SUCCESSFULLY ===');
+      console.log('Saved record:', JSON.stringify(result.rows[0], null, 2));
+      console.log('Record ID:', result.rows[0].id);
+      console.log('Email:', result.rows[0].email);
+      console.log('Archetype:', result.rows[0].archetype);
+      console.log('Star sign:', result.rows[0].star_sign);
+      console.log('Created at:', result.rows[0].created_at);
     } finally {
       // Always close the connection, even if there's an error
       await client.end();
