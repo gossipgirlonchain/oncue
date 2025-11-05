@@ -1007,7 +1007,23 @@
             
             // Calculate result to get archetype
             const result = calculateResult();
-            const archetypeKey = Object.keys(archetypes).find(key => archetypes[key].label === result.label);
+            console.log('Result object:', result);
+            console.log('Result label:', result.label);
+            console.log('All archetypes:', archetypes);
+            
+            const archetypeKey = Object.keys(archetypes).find(key => {
+                const match = archetypes[key].label === result.label;
+                console.log(`Checking ${key}: "${archetypes[key].label}" === "${result.label}" = ${match}`);
+                return match;
+            });
+            
+            console.log('=== SUBMITTING EMAIL ===');
+            console.log('Email:', email);
+            console.log('Star sign variable:', starSign);
+            console.log('Star sign type:', typeof starSign);
+            console.log('Star sign length:', starSign ? starSign.length : 0);
+            console.log('Archetype key found:', archetypeKey);
+            console.log('All archetype keys:', Object.keys(archetypes));
             
             const requestData = { 
                 email,
@@ -1015,11 +1031,7 @@
                 starSign: starSign || null
             };
             
-            console.log('=== SUBMITTING EMAIL ===');
-            console.log('Email:', email);
-            console.log('Archetype key:', archetypeKey);
-            console.log('Star sign:', starSign);
-            console.log('Request data:', requestData);
+            console.log('Request data being sent:', JSON.stringify(requestData, null, 2));
             
             // Disable button and show loading
             submitBtn.disabled = true;
