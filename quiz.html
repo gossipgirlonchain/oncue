@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <title>What Kind of Predictor Are You? | CUE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: radial-gradient(ellipse at center, #F5F5F5 0%, #FEFEFE 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .quiz-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 20%, #e9ecef 80%, #dee2e6 100%);
+            border: 1px solid #ced4da;
+            border-bottom: 3px solid #adb5bd;
+            border-right: 2px solid #adb5bd;
+            box-shadow: 
+                0 0 25px rgba(0, 0, 0, 0.3),
+                0 4px 8px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+            border-radius: 20px;
+            overflow: hidden;
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .quiz-header {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 20%, #e9ecef 80%, #dee2e6 100%);
+            border-bottom: 2px solid #ced4da;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .logo {
+            margin-bottom: 15px;
+        }
+
+        .logo img {
+            height: 50px;
+            width: auto;
+        }
+
+        .quiz-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #374151;
+        }
+
+        .quiz-header p {
+            font-size: 16px;
+            color: #6b7280;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e0e0e0;
+            margin: 0;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .question-container {
+            padding: 40px 20px;
+            flex: 1;
+            display: none;
+        }
+
+        .question-container.active {
+            display: block;
+        }
+
+        .question-number {
+            font-size: 14px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            color: #374151;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 20%, #e9ecef 80%, #dee2e6 100%);
+            border: 1px solid #ced4da;
+            border-bottom: 3px solid #adb5bd;
+            border-right: 2px solid #adb5bd;
+            box-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+            text-align: left;
+            position: relative;
+            color: #374151;
+        }
+
+        .option:hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f4 20%, #e3e7ea 80%, #d6dbdf 100%);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 4px 8px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .option.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            box-shadow: 
+                0 4px 12px rgba(102, 126, 234, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .next-btn {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 20%, #e9ecef 80%, #dee2e6 100%);
+            border: 1px solid #ced4da;
+            border-bottom: 3px solid #adb5bd;
+            border-right: 2px solid #adb5bd;
+            box-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+            color: #374151;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 30px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .next-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f4 20%, #e3e7ea 80%, #d6dbdf 100%);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 4px 8px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .next-btn:disabled {
+            background: #e9ecef;
+            color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .result-container {
+            padding: 40px 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .result-container.active {
+            display: block;
+        }
+
+        .result-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #374151;
+        }
+
+        .result-description {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .result-signs {
+            font-size: 16px;
+            color: #9ca3af;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .shareable-image {
+            background: white;
+            border: 2px solid #ced4da;
+            border-radius: 20px;
+            padding: 40px 20px;
+            margin: 30px 0;
+            box-shadow: 
+                0 4px 8px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .shareable-image canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        .share-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .share-btn {
+            background: #1da1f2;
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3);
+        }
+
+        .copy-btn {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 20%, #e9ecef 80%, #dee2e6 100%);
+            border: 1px solid #ced4da;
+            border-bottom: 3px solid #adb5bd;
+            border-right: 2px solid #adb5bd;
+            box-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+            color: #374151;
+        }
+
+        .copy-btn:hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f4 20%, #e3e7ea 80%, #d6dbdf 100%);
+            box-shadow: 
+                0 4px 8px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .email-form {
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .email-form h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #374151;
+        }
+
+        .email-form p {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        .email-input {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #f1f3f4 100%);
+            border: 1px solid #ced4da;
+            border-top: 2px solid #adb5bd;
+            border-left: 2px solid #adb5bd;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            font-size: 16px;
+            color: #374151;
+            margin-bottom: 15px;
+        }
+
+        .email-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.1), 
+                inset 0 1px 0 rgba(0, 0, 0, 0.05),
+                0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 20%, #e9ecef 80%, #dee2e6 100%);
+            border: 1px solid #ced4da;
+            border-bottom: 3px solid #adb5bd;
+            border-right: 2px solid #adb5bd;
+            box-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+            color: #374151;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f4 20%, #e3e7ea 80%, #d6dbdf 100%);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 4px 8px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #374151;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .toast.show {
+            display: block;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .quiz-header h1 {
+                font-size: 24px;
+            }
+
+            .question-text {
+                font-size: 20px;
+            }
+
+            .option {
+                font-size: 16px;
+                padding: 16px;
+            }
+
+            .result-title {
+                font-size: 28px;
+            }
+
+            .result-description {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="quiz-header">
+            <div class="logo">
+                <img src="oncueascii2.png" alt="CUE Logo">
+            </div>
+            <h1>What Kind of Predictor Are You?</h1>
+            <p>Take the quiz to discover your prediction style</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress"></div>
+        </div>
+
+        <!-- Star Sign Question -->
+        <div class="question-container active" data-question="-1">
+            <div class="question-number">Question 0 of 13</div>
+            <div class="question-text">What's your star sign?</div>
+            <div class="options">
+                <div class="option" data-value="Aries">Aries ♈</div>
+                <div class="option" data-value="Taurus">Taurus ♉</div>
+                <div class="option" data-value="Gemini">Gemini ♊</div>
+                <div class="option" data-value="Cancer">Cancer ♋</div>
+                <div class="option" data-value="Leo">Leo ♌</div>
+                <div class="option" data-value="Virgo">Virgo ♍</div>
+                <div class="option" data-value="Libra">Libra ♎</div>
+                <div class="option" data-value="Scorpio">Scorpio ♏</div>
+                <div class="option" data-value="Sagittarius">Sagittarius ♐</div>
+                <div class="option" data-value="Capricorn">Capricorn ♑</div>
+                <div class="option" data-value="Aquarius">Aquarius ♒</div>
+                <div class="option" data-value="Pisces">Pisces ♓</div>
+            </div>
+            <button class="next-btn" disabled>Next Question</button>
+        </div>
+
+        <!-- Question 1: Downfall -->
+        <div class="question-container" data-question="0">
+            <div class="question-number">Question 1 of 13</div>
+            <div class="question-text">Pick your downfall:</div>
+            <div class="options">
+                <div class="option" data-weights='{"analyst": 1}'>Social Media Manager for a financially regulated company</div>
+                <div class="option" data-weights='{"insider": 1}'>Viral on TikTok outside your niche</div>
+                <div class="option" data-weights='{"jokester": 1}'>Invested reply guy (she's got you on mute btw)</div>
+                <div class="option" data-weights='{"archivist": 1}'>$30k on a launch video that flopped</div>
+                <div class="option" data-weights='{"contrarian": 1}'>Wearing Friend to a party outside of SF</div>
+                <div class="option" data-weights='{"analyst": 1}'>Ex Google, Ex Tesla, Ex Meta in Bio (project manager)</div>
+            </div>
+            <button class="next-btn" disabled>Next Question</button>
+        </div>
+
+        <!-- Question 2: Followers -->
+        <div class="question-container" data-question="1">
+            <div class="question-number">Question 2 of 13</div>
+            <div class="question-text">You wake up to 1,000 new followers. What happened?</div>
+            <div class="options">
+                <div class="option" data-weights='{"intuitive": 1}'>On TikTok, you mean?</div>
+                <div class="option" data-weights='{"analyst": 1}'>You quoted Nikita Bier with your Marketing Strategy</div>
+                <div class="option" data-weights='{"archivist": 1}'>Posted a 7 part thread on being the self elected Elite because you moved from the Midwest to the Bay Area</div>
+                <div class="option" data-weights='{"insider": 1}'>You ratioed Jesse</div>
+            </div>
+            <button class="next-btn" disabled>Next Question</button>
+        </div>
+
+        <!-- Question 3: Tabs -->
+        <div class="question-container" data-question="2">
+            <div class="question-number">Question 3 of 13</div>
+            <div class="question-text">How many tabs are open right now?</div>
+            <div class="options">
+                <div class="option" data-weights='{"analyst": 1}'>2 (you may not pass go, you may not collect quiz results)</div>
+                <div class="option" data-weights='{"archivist": 1}'>32? idk</div>
+                <div class="option" data-weights='{"jokester": 1}'>58+</div>
+                <div class="option" data-weights='{"contrarian": 1}'>4 browsers, tabs unknown</div>
+                <div class="option" data-weights='{"intuitive": 1}'>No laptop, just phone :)</div>
+            </div>
+            <button class="next-btn" disabled>Next Question</button>
+        </div>
+
+        <!-- Question 4: Spotify -->
+        <div class="question-container" data-question="3">
+            <div class="question-number">Question 4 of 13</div>
+            <div class="question-text">Your Spotify Wrapped says:</div>
+            <div class="options">
+                <div class="option" data-weights='{"insider": 1}'>"Von Dutch Charli Xcx", it IS ok to just admit you're jealous of me</div>
+                <div class="option" data-weights='{"analyst": 1}'>"10,000 hours of manifestation mantras… and you achieved what exactly."</div>
+                <div class="option" data-weights='{"intuitive": 1}'>"Sea Sounds: You need to touch grass."</div>
+                <div class="option" data-weights='{"jokester": 1}'>"Every episode of TBPN? Winner of the Performative SF resident competition"</div>
+            </div>
+            <button class="next-btn" disabled>Next Question</button>
+        </div>
+
+        <!-- Question 5: Research -->
+        <div class="question-container" data-question="4">
+            <div class="question-number">Question 5 of 13</div>
+            <div class="question-text">What counts as 'research'?</div>
+            <div class="options">
+                <div class="option" data-weights='{"jokester": 1}'>Seeing if you had a DM from Shane in 2022</div>
+                <div class="option" data-weights='{"intuitive": 1}'>CrimeTok doomscroll</div>
+                <div class="option" data-weights='{"insider": 1}'>Asking questions in the Berabaddies TG</div>
+                <div class="option" data-weights='{"analyst": 1}'>Watching every Mr Beasts Youtube video only to put $7 on "what will he say next"</div>
+                <div class="option" data-weights='{"archivist": 1}'>Schizo Crashout Taylor Swift Easter Egg Hunt</div>
+            </div>
+            <button class="next-btn" disabled>Next Question</button>
+        </div>
+
+        <!-- Question 6: Peaked -->
+        <div class="question-container" data-question="5">
+            <div class="question-number">Question 6 of 13</div>
+            <div class="question-text">I've Peaked</div>
+            <div class="options">
+                <div class="option" data-weights='{"jokester": 1}'>Your ex deactivates his twitter account (but he cheated on you at Token2049)</div>
+                <div class="option" data-weights='{"insider": 1}'>TPBN posts your engagement</div>
+                <div class="option" data-weights='{"archivist": 1}'>Invited onto a Women In Web3 panel</div>
+                <div class="option" data-weights='{"analyst": 1}'>37 users on Farcaster miniapp</div>
+                <div class="option" data-weights='{"contrarian": 1}'>Picked up the check at House of Prime Rib</div>
+                <div class="option" data-weights='{"intuitive": 1}'>Your ex subscribed to your substack</div>
+                <div class="option" data-weights='{"analyst": 1}'>Community Last in the Monad Airdrop</div>
+            </div>
+            <button class="next-btn" disabled>Next Question</button>
+        </div>
+
+        <!-- Question 7: Altar -->
+        <div class="question-container" data-question="6">
+            <div class="question-number">Question 7 of 13</div>
+            <div class="question-text">Choose your altar item</div>
+            <div class="options">
+                <div class="option" data-weights='{"jokester": 1}'>A vape, stolen from a twitter mutual</div>
+                <div class="option" data-weights='{"archivist": 1}'>2016 Too Faced Sweet Peach Eyeshadow Pallet</div>
+                <div class="option" data-weights='{"contrarian": 1}'>47 unused domains</div>
+                <div class="option" data-weights='{"archivist": 1}'>2014 seed phrase lost in the void</div>
+                <div class="option" data-weights='{"insider": 1}'>Time Square Billboard</div>
+                <div class="option" data-weights='{"analyst": 1}'>YC rejection email</div>
+                <div class="option" data-weights='{"intuitive": 1}'>A single gold hoop earring</div>
+            </div>
+            <button class="next-btn" disabled>Next Question</button>
+        </div>
+
+        <!-- Question 8: Media Diet -->
+        <div class="question-container" data-question="7">
+            <div class="question-number">Question 8 of 13</div>
+            <div class="question-text">What's your current media diet?</div>
+            <div class="options">
+                <div class="option" data-weights='{"insider": 1}'>Cluely UGC only</div>
+                <div class="option" data-weights='{"archivist": 1}'>Read Write Own, 50 times and then another 50 times</div>
+                <div class="option" data-weights='{"jokester": 1}'>Snapchat News</div>
+                <div class="option" data-weights='{"intuitive": 1}'>4 hour a day TikTok live tarot reading</div>
+                <div class="option" data-weights='{"contrarian": 1}'>2 months old Twitter memes on Instagram</div>
+                <div class="option" data-weights='{"intuitive": 1}'>Voice notes from that friend</div>
+            </div>
+            <button class="next-btn" disabled>Next Question</button>
+        </div>
+
+        <!-- Question 9: Slop Bowl -->
+        <div class="question-container" data-question="8">
+            <div class="question-number">Question 9 of 13</div>
+            <div class="question-text">Slop bowl of choice?</div>
+            <div class="options">
+                <div class="option" data-weights='{"analyst": 1}'>Sweetgreen honey chicken</div>
+                <div class="option" data-weights='{"archivist": 1}'>Deconstructed Hailey Bieber Smoothie, shipped, your life's work</div>
+                <div class="option" data-weights='{"contrarian": 1}'>Chipotle order last edited in 2014</div>
+                <div class="option" data-weights='{"intuitive": 1}'>Non/prescription trail mix</div>
+                <div class="option" data-weights='{"jokester": 1}'>Blueprint + half a gram of k</div>
+                <div class="option" data-weights='{"insider": 1}'>IV, posted on the timeline</div>
+            </div>
+            <button class="next-btn" disabled>Next Question</button>
+        </div>
+
+        <!-- Question 10: It's Over -->
+        <div class="question-container" data-question="9">
+            <div class="question-number">Question 10 of 13</div>
+            <div class="question-text">How do you know something's over?</div>
+            <div class="options">
+                <div class="option" data-weights='{"contrarian": 1}'>Crypto companies start doing it (labubu's for marketing in Q4)</div>
+                <div class="option" data-weights='{"archivist": 1}'>Someone made a Substack thinkpiece defending it</div>
+                <div class="option" data-weights='{"intuitive": 1}'>I got the ick</div>
+                <div class="option" data-weights='{"insider": 1}'>It's been coined on Base</div>
+                <div class="option" data-weights='{"jokester": 1}'>Don't care, on my own wave</div>
+                <div class="option" data-weights='{"intuitive": 1}'>When the Oracle says so</div>
+            </div>
+            <button class="next-btn" disabled>Next Question</button>
+        </div>
+
+        <!-- Question 11: Style -->
+        <div class="question-container" data-question="10">
+            <div class="question-number">Question 11 of 13</div>
+            <div class="question-text">You describe your style as:</div>
+            <div class="options">
+                <div class="option" data-weights='{"jokester": 1}'>Lost in Bushwick</div>
+                <div class="option" data-weights='{"analyst": 1}'>San Fransician (derogatory)</div>
+                <div class="option" data-weights='{"analyst": 1}'>Clean girl</div>
+                <div class="option" data-weights='{"insider": 1}'>SSENSE victim</div>
+                <div class="option" data-weights='{"archivist": 1}'>Dieworkwear stan</div>
+                <div class="option" data-weights='{"jokester": 1}'>Conference merch</div>
+            </div>
+            <button class="next-btn" disabled>Next Question</button>
+        </div>
+
+        <!-- Question 12: Push -->
+        <div class="question-container" data-question="11">
+            <div class="question-number">Question 12 of 13</div>
+            <div class="question-text">You get one push notification every morning. What is it?</div>
+            <div class="options">
+                <div class="option" data-weights='{"jokester": 1}'>"You have been liquidated, again, perp up"</div>
+                <div class="option" data-weights='{"intuitive": 1}'>"You've been superliked on Hinge"</div>
+                <div class="option" data-weights='{"analyst": 1}'>"You missed your sleep goals, try going to bed earlier"</div>
+                <div class="option" data-weights='{"archivist": 1}'>NYT has new daily games for you to play</div>
+                <div class="option" data-weights='{"contrarian": 1}'>*5am alarm*</div>
+            </div>
+            <button class="next-btn" disabled>See My Result</button>
+        </div>
+
+        <!-- Result Screen -->
+        <div class="result-container">
+            <div class="result-title" id="resultTitle">The Insider / Trend Oracle</div>
+            <div class="result-signs" id="resultSigns">Signs: Gemini, Libra, Sagittarius</div>
+            <div class="result-description" id="resultDescription">
+                Predicts the micro before it's macro. Hyper-online, culturally fluent, allergic to lag.
+            </div>
+            
+            <div class="shareable-image" id="shareableImage">
+                <canvas id="resultCanvas" width="600" height="400"></canvas>
+            </div>
+
+            <div class="share-buttons">
+                <button class="share-btn copy-btn" id="copyBtn">
+                    📋 Copy Image to Clipboard
+                </button>
+                <button class="share-btn" id="tweetBtn" onclick="shareToTwitter()">
+                    🐦 Share on Twitter
+                </button>
+            </div>
+
+            <div class="email-form">
+                <h3>Get More Predictions</h3>
+                <p>Join CUE to unlock your full prediction potential</p>
+                <form id="emailForm" onsubmit="submitEmail(event)">
+                    <input type="email" class="email-input" id="emailInput" placeholder="Enter your email" required>
+                    <button type="submit" class="submit-btn">Join CUE</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let currentQuestion = -1; // Start at -1 for star sign
+        let answers = [];
+        let starSign = '';
+        const totalQuestions = 12; // 12 questions after star sign
+        
+        // Archetypes data
+        const archetypes = {
+            "insider": {
+                "label": "The Insider / Trend Oracle",
+                "signs": ["Gemini", "Libra", "Sagittarius"],
+                "blurb": "Predicts the micro before it's macro. Hyper-online, culturally fluent, allergic to lag."
+            },
+            "archivist": {
+                "label": "The Archivist",
+                "signs": ["Virgo", "Capricorn", "Cancer"],
+                "blurb": "Studies the past to forecast the future. Pattern-oriented, quietly confident."
+            },
+            "analyst": {
+                "label": "The Analyst / Investor",
+                "signs": ["Taurus", "Aquarius", "Virgo"],
+                "blurb": "Data-driven, skeptical, bets on reason not vibes. Treats markets like a culture ticker."
+            },
+            "contrarian": {
+                "label": "The Contrarian",
+                "signs": ["Scorpio", "Aquarius", "Aries"],
+                "blurb": "If everyone's betting yes, they're betting no. Calls the flip."
+            },
+            "intuitive": {
+                "label": "The Intuitive",
+                "signs": ["Pisces", "Cancer", "Libra"],
+                "blurb": "Just feels it in the air. Follows mood more than metrics."
+            },
+            "jokester": {
+                "label": "The Jokester / Chaos Prophet",
+                "signs": ["Leo", "Sagittarius", "Gemini"],
+                "blurb": "Predicts for the plot. Loves volatility, memes, and wildcards."
+            }
+        };
+
+        // Initialize quiz
+        document.querySelectorAll('.option').forEach(option => {
+            option.addEventListener('click', function() {
+                const questionContainer = this.closest('.question-container');
+                questionContainer.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                questionContainer.querySelector('.next-btn').disabled = false;
+            });
+        });
+
+        document.querySelectorAll('.next-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const questionContainer = this.closest('.question-container');
+                const selectedOption = questionContainer.querySelector('.option.selected');
+                
+                if (selectedOption) {
+                    const questionIndex = parseInt(questionContainer.dataset.question);
+                    
+                    if (questionIndex === -1) {
+                        // Star sign question
+                        starSign = selectedOption.dataset.value;
+                    } else {
+                        // Regular question - store weights
+                        const weights = JSON.parse(selectedOption.dataset.weights || '{}');
+                        answers.push(weights);
+                    }
+                    
+                    currentQuestion++;
+                    updateProgress();
+                    
+                    if (currentQuestion < totalQuestions) {
+                        showQuestion(currentQuestion);
+                    } else {
+                        showResult();
+                    }
+                }
+            });
+        });
+
+        function showQuestion(index) {
+            document.querySelectorAll('.question-container').forEach((q, i) => {
+                const qIndex = parseInt(q.dataset.question);
+                q.classList.toggle('active', qIndex === index);
+            });
+        }
+
+        function updateProgress() {
+            const questionNum = currentQuestion + 1; // +1 because we start at -1
+            const progress = (questionNum / (totalQuestions + 1)) * 100; // +1 for star sign
+            document.getElementById('progress').style.width = progress + '%';
+            
+            // Update question numbers
+            document.querySelectorAll('.question-number').forEach(el => {
+                const container = el.closest('.question-container');
+                const qIndex = parseInt(container.dataset.question);
+                if (qIndex === currentQuestion) {
+                    el.textContent = `Question ${questionNum} of ${totalQuestions + 1}`;
+                }
+            });
+        }
+
+        function calculateResult() {
+            // Sum up all the weights
+            const scores = {
+                insider: 0,
+                archivist: 0,
+                analyst: 0,
+                contrarian: 0,
+                intuitive: 0,
+                jokester: 0
+            };
+            
+            answers.forEach(answer => {
+                Object.keys(answer).forEach(archetype => {
+                    scores[archetype] += answer[archetype] || 0;
+                });
+            });
+            
+            // Find highest score
+            let maxScore = 0;
+            let winner = 'insider'; // default
+            
+            Object.keys(scores).forEach(archetype => {
+                if (scores[archetype] > maxScore) {
+                    maxScore = scores[archetype];
+                    winner = archetype;
+                }
+            });
+            
+            // Check if star sign matches any archetype
+            const starSignMatch = Object.keys(archetypes).find(key => 
+                archetypes[key].signs.includes(starSign)
+            );
+            
+            // If star sign matches and score is close, use that
+            if (starSignMatch && scores[starSignMatch] >= maxScore - 1) {
+                winner = starSignMatch;
+            }
+            
+            return archetypes[winner];
+        }
+
+        function showResult() {
+            document.querySelectorAll('.question-container').forEach(q => q.classList.remove('active'));
+            const result = calculateResult();
+            
+            document.getElementById('resultTitle').textContent = result.label;
+            document.getElementById('resultSigns').textContent = `Signs: ${result.signs.join(', ')}`;
+            document.getElementById('resultDescription').textContent = result.blurb;
+            
+            // Generate shareable image
+            generateShareableImage(result);
+            
+            document.querySelector('.result-container').classList.add('active');
+        }
+
+        function generateShareableImage(result) {
+            const canvas = document.getElementById('resultCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size for mobile
+            const maxWidth = Math.min(600, window.innerWidth - 40);
+            canvas.width = maxWidth;
+            canvas.height = (maxWidth * 2) / 3;
+            
+            // Background - match landing page style
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#F5F5F5');
+            gradient.addColorStop(1, '#FEFEFE');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Title
+            ctx.fillStyle = '#374151';
+            ctx.font = 'bold 32px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillText(result.label, canvas.width / 2, 40);
+            
+            // Signs
+            ctx.font = '16px Arial';
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillText(`Signs: ${result.signs.join(', ')}`, canvas.width / 2, 90);
+            
+            // Description (wrapped)
+            ctx.font = '18px Arial';
+            ctx.fillStyle = '#6b7280';
+            const maxWidthText = canvas.width - 80;
+            const words = result.blurb.split(' ');
+            let line = '';
+            let y = 140;
+            
+            words.forEach(word => {
+                const testLine = line + word + ' ';
+                const metrics = ctx.measureText(testLine);
+                if (metrics.width > maxWidthText && line) {
+                    ctx.fillText(line, canvas.width / 2, y);
+                    line = word + ' ';
+                    y += 30;
+                } else {
+                    line = testLine;
+                }
+            });
+            ctx.fillText(line, canvas.width / 2, y);
+            
+            // CUE logo text
+            ctx.font = 'bold 24px Arial';
+            ctx.fillStyle = '#374151';
+            ctx.fillText('CUE', canvas.width / 2, canvas.height - 60);
+        }
+
+        async function copyImageToClipboard() {
+            const canvas = document.getElementById('resultCanvas');
+            try {
+                canvas.toBlob(async (blob) => {
+                    const item = new ClipboardItem({ 'image/png': blob });
+                    await navigator.clipboard.write([item]);
+                    showToast('Image copied to clipboard! 📋');
+                });
+            } catch (err) {
+                // Fallback: download image
+                const link = document.createElement('a');
+                link.download = 'cue-predictor-result.png';
+                link.href = canvas.toDataURL();
+                link.click();
+                showToast('Image download started! 📥');
+            }
+        }
+
+        document.getElementById('copyBtn').addEventListener('click', copyImageToClipboard);
+
+        function shareToTwitter() {
+            const result = calculateResult();
+            const text = `I'm a ${result.label}! Find out what kind of predictor you are 👉`;
+            const url = `https://oncue.market/quiz`;
+            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+            window.open(twitterUrl, '_blank');
+        }
+
+        async function submitEmail(event) {
+            event.preventDefault();
+            const email = document.getElementById('emailInput').value;
+            
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email })
+                });
+                
+                if (response.ok || response.status === 302) {
+                    showToast('Email saved! Thank you! 🎉');
+                    document.getElementById('emailInput').value = '';
+                } else {
+                    showToast('Something went wrong. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Something went wrong. Please try again.');
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
