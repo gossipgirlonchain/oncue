@@ -42,10 +42,13 @@ module.exports = async (req, res) => {
     const archetype = bodyData.archetype || null; // e.g., 'insider', 'archivist', etc.
     const starSign = bodyData.starSign || null; // e.g., 'Gemini', 'Virgo', etc.
     
-    console.log('Parsed data:', { email, archetype, starSign });
-    console.log('Email exists:', !!email);
-    console.log('Archetype:', archetype);
-    console.log('Star sign:', starSign);
+    console.log('=== PARSED REQUEST DATA ===');
+    console.log('Raw bodyData:', JSON.stringify(bodyData, null, 2));
+    console.log('Email:', email, '(type:', typeof email, ')');
+    console.log('Archetype:', archetype, '(type:', typeof archetype, ', is null:', archetype === null, ')');
+    console.log('StarSign:', starSign, '(type:', typeof starSign, ', is null:', starSign === null, ')');
+    console.log('Archetype after || null:', archetype || null);
+    console.log('StarSign after || null:', starSign || null);
     
     if (!email || !email.includes('@')) {
       console.error('Invalid email format');
@@ -83,16 +86,26 @@ module.exports = async (req, res) => {
       console.log('Database connected successfully');
       
       const cleanEmail = email.trim().toLowerCase();
-      console.log('Inserting data:', { email: cleanEmail, archetype, starSign });
+      const insertArchetype = archetype || null;
+      const insertStarSign = starSign || null;
+      
+      console.log('=== PREPARING INSERT ===');
+      console.log('Clean email:', cleanEmail);
+      console.log('Archetype to insert:', insertArchetype, '(type:', typeof insertArchetype, ')');
+      console.log('StarSign to insert:', insertStarSign, '(type:', typeof insertStarSign, ')');
+      console.log('SQL params:', [cleanEmail, insertArchetype, insertStarSign]);
       
       // Insert email with quiz results (handle NULL values properly)
       let result;
       try {
         // Always try to insert with archetype and star_sign (they can be NULL)
+        console.log('Executing INSERT query...');
         result = await client.query(
           'INSERT INTO signups (email, archetype, star_sign) VALUES ($1, $2, $3) RETURNING id, email, archetype, star_sign, created_at',
-          [cleanEmail, archetype || null, starSign || null]
+          [cleanEmail, insertArchetype, insertStarSign]
         );
+        console.log('=== INSERT SUCCESSFUL ===');
+        console.log('Rows returned:', result.rows.length);
         console.log('Insert successful with quiz results');
       } catch (err) {
         console.error('Insert error:', err.code, err.message);
