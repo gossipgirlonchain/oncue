@@ -16,10 +16,31 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { email } = req.body;
+    // Parse request body
+    let email;
+    if (typeof req.body === 'string') {
+      const parsed = JSON.parse(req.body);
+      email = parsed.email;
+    } else {
+      email = req.body.email;
+    }
     
     if (!email || !email.includes('@')) {
+      const isJsonRequest = req.headers['content-type'] === 'application/json';
+      if (isJsonRequest) {
+        return res.status(400).json({ success: false, error: 'Valid email required' });
+      }
       return res.status(400).json({ error: 'Valid email required' });
+    }
+
+    // Check if DATABASE_URL is set
+    if (!process.env.DATABASE_URL) {
+      console.error('DATABASE_URL not set');
+      const isJsonRequest = req.headers['content-type'] === 'application/json';
+      if (isJsonRequest) {
+        return res.status(500).json({ success: false, error: 'Database connection not configured' });
+      }
+      return res.status(500).json({ error: 'Database connection not configured' });
     }
 
     // Connect to database and insert email
@@ -40,11 +61,12 @@ module.exports = async (req, res) => {
     console.log('Email saved:', result.rows[0]);
     
     // Check if request expects JSON (from quiz/fetch) or HTML redirect (from form)
-    const acceptsJson = req.headers.accept && req.headers.accept.includes('application/json');
+    const isJsonRequest = req.headers['content-type'] === 'application/json' || 
+                          (req.headers.accept && req.headers.accept.includes('application/json'));
     
-    if (acceptsJson || req.headers['content-type'] === 'application/json') {
+    if (isJsonRequest) {
       // Return JSON response for API calls
-      res.status(200).json({ success: true, message: 'Email saved successfully' });
+      return res.status(200).json({ success: true, message: 'Email saved successfully' });
     } else {
       // Redirect for form submissions
       res.writeHead(302, { 'Location': '/countdown.html' });
@@ -54,10 +76,12 @@ module.exports = async (req, res) => {
   } catch (error) {
     console.error('Error:', error);
     
+    const isJsonRequest = req.headers['content-type'] === 'application/json' || 
+                          (req.headers.accept && req.headers.accept.includes('application/json'));
+    
     // Handle duplicate email
     if (error.code === '23505') {
-      const acceptsJson = req.headers.accept && req.headers.accept.includes('application/json');
-      if (acceptsJson || req.headers['content-type'] === 'application/json') {
+      if (isJsonRequest) {
         return res.status(200).json({ success: true, message: 'Email already registered' });
       }
       res.writeHead(302, { 'Location': '/?error=duplicate' });
@@ -66,8 +90,7 @@ module.exports = async (req, res) => {
     }
     
     // Handle other errors
-    const acceptsJson = req.headers.accept && req.headers.accept.includes('application/json');
-    if (acceptsJson || req.headers['content-type'] === 'application/json') {
+    if (isJsonRequest) {
       return res.status(500).json({ success: false, error: 'Failed to save email' });
     }
     
