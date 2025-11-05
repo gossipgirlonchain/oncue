@@ -770,6 +770,16 @@
                 const qIndex = parseInt(q.dataset.question);
                 q.classList.toggle('active', qIndex === index);
             });
+            
+            // Scroll to the active question
+            const activeQuestion = document.querySelector('.question-container.active');
+            if (activeQuestion) {
+                activeQuestion.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start',
+                    inline: 'nearest'
+                });
+            }
         }
 
         function updateProgress() {
@@ -791,9 +801,16 @@
             // Hide all question containers
             document.querySelectorAll('.question-container').forEach(q => q.classList.remove('active'));
             // Show email collection
-            document.querySelector('.email-collection-container').classList.add('active');
+            const emailContainer = document.querySelector('.email-collection-container');
+            emailContainer.classList.add('active');
             // Set progress to 100%
             document.getElementById('progress').style.width = '100%';
+            // Scroll to email collection
+            emailContainer.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start',
+                inline: 'nearest'
+            });
         }
 
         function calculateResult() {
@@ -847,7 +864,15 @@
             // Generate shareable image
             generateShareableImage(result);
             
-            document.querySelector('.result-container').classList.add('active');
+            const resultContainer = document.querySelector('.result-container');
+            resultContainer.classList.add('active');
+            
+            // Scroll to result
+            resultContainer.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start',
+                inline: 'nearest'
+            });
         }
 
         function generateShareableImage(result) {
