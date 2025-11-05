@@ -39,18 +39,36 @@ module.exports = async (req, res) => {
     
     console.log('Email saved:', result.rows[0]);
     
-    // Redirect to countdown page with success
-    res.writeHead(302, { 'Location': '/countdown.html' });
-    res.end();
+    // Check if request expects JSON (from quiz/fetch) or HTML redirect (from form)
+    const acceptsJson = req.headers.accept && req.headers.accept.includes('application/json');
+    
+    if (acceptsJson || req.headers['content-type'] === 'application/json') {
+      // Return JSON response for API calls
+      res.status(200).json({ success: true, message: 'Email saved successfully' });
+    } else {
+      // Redirect for form submissions
+      res.writeHead(302, { 'Location': '/countdown.html' });
+      res.end();
+    }
     
   } catch (error) {
     console.error('Error:', error);
     
     // Handle duplicate email
     if (error.code === '23505') {
+      const acceptsJson = req.headers.accept && req.headers.accept.includes('application/json');
+      if (acceptsJson || req.headers['content-type'] === 'application/json') {
+        return res.status(200).json({ success: true, message: 'Email already registered' });
+      }
       res.writeHead(302, { 'Location': '/?error=duplicate' });
       res.end();
       return;
+    }
+    
+    // Handle other errors
+    const acceptsJson = req.headers.accept && req.headers.accept.includes('application/json');
+    if (acceptsJson || req.headers['content-type'] === 'application/json') {
+      return res.status(500).json({ success: false, error: 'Failed to save email' });
     }
     
     res.writeHead(302, { 'Location': '/?error=failed' });

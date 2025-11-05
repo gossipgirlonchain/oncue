@@ -906,15 +906,18 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({ email })
                 });
                 
-                if (response.ok || response.status === 302) {
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
                     showToast('Email saved! Thank you! 🎉');
                     document.getElementById('emailInput').value = '';
                 } else {
-                    showToast('Something went wrong. Please try again.');
+                    showToast(data.message || 'Something went wrong. Please try again.');
                 }
             } catch (error) {
                 console.error('Error:', error);
