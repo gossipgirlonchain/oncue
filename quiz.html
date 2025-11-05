@@ -237,13 +237,6 @@
             margin-bottom: 30px;
         }
 
-        .result-signs {
-            font-size: 16px;
-            color: #9ca3af;
-            margin-bottom: 30px;
-            font-style: italic;
-        }
-
         .shareable-image {
             background: white;
             border: 2px solid #ced4da;
@@ -671,7 +664,6 @@
         <!-- Result Screen -->
         <div class="result-container">
             <div class="result-title" id="resultTitle">The Insider / Trend Oracle</div>
-            <div class="result-signs" id="resultSigns">Signs: Gemini, Libra, Sagittarius</div>
             <div class="result-description" id="resultDescription">
                 Predicts the micro before it's macro. Hyper-online, culturally fluent, allergic to lag.
             </div>
@@ -850,7 +842,6 @@
             const result = calculateResult();
             
             document.getElementById('resultTitle').textContent = result.label;
-            document.getElementById('resultSigns').textContent = `Signs: ${result.signs.join(', ')}`;
             document.getElementById('resultDescription').textContent = result.blurb;
             
             // Generate shareable image
@@ -882,18 +873,13 @@
             ctx.textBaseline = 'top';
             ctx.fillText(result.label, canvas.width / 2, 40);
             
-            // Signs
-            ctx.font = '16px Arial';
-            ctx.fillStyle = '#9ca3af';
-            ctx.fillText(`Signs: ${result.signs.join(', ')}`, canvas.width / 2, 90);
-            
             // Description (wrapped)
             ctx.font = '18px Arial';
             ctx.fillStyle = '#6b7280';
             const maxWidthText = canvas.width - 80;
             const words = result.blurb.split(' ');
             let line = '';
-            let y = 140;
+            let y = 100;
             
             words.forEach(word => {
                 const testLine = line + word + ' ';
