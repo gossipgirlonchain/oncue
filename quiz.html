@@ -189,6 +189,30 @@
             box-shadow: none;
         }
 
+        .email-collection-container {
+            padding: 40px 20px;
+            flex: 1;
+            display: none;
+            text-align: center;
+        }
+
+        .email-collection-container.active {
+            display: block;
+        }
+
+        .email-collection-container h2 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #374151;
+        }
+
+        .email-collection-container p {
+            font-size: 16px;
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
         .result-container {
             padding: 40px 20px;
             text-align: center;
@@ -291,9 +315,8 @@
         }
 
         .email-form {
-            margin-top: 40px;
-            padding-top: 40px;
-            border-top: 2px solid #e0e0e0;
+            max-width: 400px;
+            margin: 0 auto;
         }
 
         .email-form h3 {
@@ -350,13 +373,21 @@
             transition: all 0.3s ease;
         }
 
-        .submit-btn:hover {
+        .submit-btn:hover:not(:disabled) {
             background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f4 20%, #e3e7ea 80%, #d6dbdf 100%);
             transform: translateY(-2px);
             box-shadow: 
                 0 4px 8px rgba(0, 0, 0, 0.15),
                 inset 0 1px 0 rgba(255, 255, 255, 0.8),
                 inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .submit-btn:disabled {
+            background: #e9ecef;
+            color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         .toast {
@@ -624,6 +655,19 @@
             <button class="next-btn" disabled>See My Result</button>
         </div>
 
+        <!-- Email Collection Screen -->
+        <div class="email-collection-container">
+            <h2>Almost there!</h2>
+            <p>Enter your email to see your prediction style</p>
+            
+            <div class="email-form">
+                <form id="emailForm" onsubmit="submitEmail(event)">
+                    <input type="email" class="email-input" id="emailInput" placeholder="Enter your email" required>
+                    <button type="submit" class="submit-btn">See My Result</button>
+                </form>
+            </div>
+        </div>
+
         <!-- Result Screen -->
         <div class="result-container">
             <div class="result-title" id="resultTitle">The Insider / Trend Oracle</div>
@@ -643,15 +687,6 @@
                 <button class="share-btn" id="tweetBtn" onclick="shareToTwitter()">
                     🐦 Share on Twitter
                 </button>
-            </div>
-
-            <div class="email-form">
-                <h3>Get More Predictions</h3>
-                <p>Join CUE to unlock your full prediction potential</p>
-                <form id="emailForm" onsubmit="submitEmail(event)">
-                    <input type="email" class="email-input" id="emailInput" placeholder="Enter your email" required>
-                    <button type="submit" class="submit-btn">Join CUE</button>
-                </form>
             </div>
         </div>
     </div>
@@ -731,7 +766,8 @@
                     if (currentQuestion < totalQuestions) {
                         showQuestion(currentQuestion);
                     } else {
-                        showResult();
+                        // Show email collection instead of results
+                        showEmailCollection();
                     }
                 }
             });
@@ -757,6 +793,15 @@
                     el.textContent = `Question ${questionNum} of ${totalQuestions + 1}`;
                 }
             });
+        }
+
+        function showEmailCollection() {
+            // Hide all question containers
+            document.querySelectorAll('.question-container').forEach(q => q.classList.remove('active'));
+            // Show email collection
+            document.querySelector('.email-collection-container').classList.add('active');
+            // Set progress to 100%
+            document.getElementById('progress').style.width = '100%';
         }
 
         function calculateResult() {
@@ -900,6 +945,12 @@
         async function submitEmail(event) {
             event.preventDefault();
             const email = document.getElementById('emailInput').value;
+            const submitBtn = event.target.querySelector('.submit-btn');
+            const originalText = submitBtn.textContent;
+            
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Loading...';
             
             try {
                 const response = await fetch('/api/register', {
@@ -914,14 +965,20 @@
                 const data = await response.json();
                 
                 if (response.ok && data.success) {
-                    showToast('Email saved! Thank you! 🎉');
-                    document.getElementById('emailInput').value = '';
+                    // Hide email collection and show results
+                    document.querySelector('.email-collection-container').classList.remove('active');
+                    showResult();
+                    showToast('Email saved! 🎉');
                 } else {
                     showToast(data.message || 'Something went wrong. Please try again.');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
                 }
             } catch (error) {
                 console.error('Error:', error);
                 showToast('Something went wrong. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
             }
         }
 
