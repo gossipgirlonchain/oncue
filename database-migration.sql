@@ -1,5 +1,6 @@
 -- Migration to add quiz result columns to signups table
 -- Run this in your Neon database SQL editor
+-- Note: This assumes the signups table already exists
 
 -- Add archetype column (stores the quiz result type: insider, archivist, analyst, contrarian, intuitive, jokester)
 ALTER TABLE signups 

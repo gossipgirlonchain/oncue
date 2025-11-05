@@ -994,25 +994,23 @@
                     console.log('Response text:', responseText);
                 }
                 
+                // Always show results, regardless of email save status
+                document.querySelector('.email-collection-container').classList.remove('active');
+                showResult();
+                
                 if (responseOk && data.success) {
-                    // Hide email collection and show results
-                    document.querySelector('.email-collection-container').classList.remove('active');
-                    showResult();
-                    showToast('Email saved! 🎉');
+                    // Email saved successfully, but no notification
+                    console.log('Email saved successfully');
                 } else {
-                    // Still show results even if email save failed
-                    document.querySelector('.email-collection-container').classList.remove('active');
-                    showResult();
+                    // Email save failed - log but don't show notification
                     const errorMsg = data.error || data.message || 'Email may not have been saved';
                     console.error('Email save failed:', errorMsg);
-                    showToast(errorMsg);
                 }
             } catch (error) {
                 console.error('Error submitting email:', error);
-                // Still show results even if API call failed (e.g., network error)
+                // Still show results even if API call failed
                 document.querySelector('.email-collection-container').classList.remove('active');
                 showResult();
-                showToast('Result shown, but email may not have been saved. Check console for details.');
             }
         }
 

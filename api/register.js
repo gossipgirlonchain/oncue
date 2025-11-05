@@ -59,37 +59,45 @@ module.exports = async (req, res) => {
       connectionString: process.env.DATABASE_URL
     });
     
-    await client.connect();
-    console.log('Database connected successfully');
-    
-    const cleanEmail = email.trim().toLowerCase();
-    console.log('Inserting data:', { email: cleanEmail, archetype, starSign });
-    
-    // Check if columns exist, if not use basic insert
-    let result;
     try {
-      // Try to insert with archetype and star_sign (for quiz results)
-      result = await client.query(
-        'INSERT INTO signups (email, archetype, star_sign) VALUES ($1, $2, $3) RETURNING id, email, archetype, star_sign, created_at',
-        [cleanEmail, archetype, starSign]
-      );
-    } catch (err) {
-      // If columns don't exist, try basic insert
-      if (err.code === '42703' || err.message.includes('column')) {
-        console.log('Quiz result columns not found, using basic insert');
+      await client.connect();
+      console.log('Database connected successfully');
+      
+      const cleanEmail = email.trim().toLowerCase();
+      console.log('Inserting data:', { email: cleanEmail, archetype, starSign });
+      
+      // Insert email with quiz results (handle NULL values properly)
+      let result;
+      try {
+        // Always try to insert with archetype and star_sign (they can be NULL)
         result = await client.query(
-          'INSERT INTO signups (email) VALUES ($1) RETURNING id, email, created_at',
-          [cleanEmail]
+          'INSERT INTO signups (email, archetype, star_sign) VALUES ($1, $2, $3) RETURNING id, email, archetype, star_sign, created_at',
+          [cleanEmail, archetype || null, starSign || null]
         );
-      } else {
-        throw err;
+        console.log('Insert successful with quiz results');
+      } catch (err) {
+        console.error('Insert error:', err.code, err.message);
+        // If columns don't exist, try basic insert
+        if (err.code === '42703' || err.message.includes('column')) {
+          console.log('Quiz result columns not found, using basic insert');
+          result = await client.query(
+            'INSERT INTO signups (email) VALUES ($1) RETURNING id, email, created_at',
+            [cleanEmail]
+          );
+          console.log('Basic insert successful');
+        } else {
+          // Re-throw other errors (like duplicate email, connection issues, etc.)
+          console.error('Database error:', err);
+          throw err;
+        }
       }
+      
+      console.log('Data saved successfully:', result.rows[0]);
+    } finally {
+      // Always close the connection, even if there's an error
+      await client.end();
+      console.log('Database connection closed');
     }
-    
-    console.log('Data saved successfully:', result.rows[0]);
-    
-    await client.end();
-    console.log('Database connection closed');
     
     // Check if request expects JSON (from quiz/fetch) or HTML redirect (from form)
     const isJsonRequest = req.headers['content-type'] === 'application/json' || 
@@ -105,13 +113,18 @@ module.exports = async (req, res) => {
     }
     
   } catch (error) {
-    console.error('Error:', error);
+    console.error('=== ERROR DETAILS ===');
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    console.error('Full error:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
     
     const isJsonRequest = req.headers['content-type'] === 'application/json' || 
                           (req.headers.accept && req.headers.accept.includes('application/json'));
     
     // Handle duplicate email
     if (error.code === '23505') {
+      console.log('Duplicate email detected');
       if (isJsonRequest) {
         return res.status(200).json({ success: true, message: 'Email already registered' });
       }
@@ -121,8 +134,15 @@ module.exports = async (req, res) => {
     }
     
     // Handle other errors
+    const errorMessage = error.message || 'Failed to save email';
+    console.error('Returning error to client:', errorMessage);
+    
     if (isJsonRequest) {
-      return res.status(500).json({ success: false, error: 'Failed to save email' });
+      return res.status(500).json({ 
+        success: false, 
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
     }
     
     res.writeHead(302, { 'Location': '/?error=failed' });
