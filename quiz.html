@@ -725,13 +725,36 @@
             }
         };
 
-        // Initialize quiz
+        // Initialize quiz - auto-advance on option click
         document.querySelectorAll('.option').forEach(option => {
             option.addEventListener('click', function() {
                 const questionContainer = this.closest('.question-container');
                 questionContainer.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
                 this.classList.add('selected');
-                questionContainer.querySelector('.next-btn').disabled = false;
+                
+                // Auto-advance to next question after a brief delay for visual feedback
+                setTimeout(() => {
+                    const questionIndex = parseInt(questionContainer.dataset.question);
+                    
+                    if (questionIndex === -1) {
+                        // Star sign question
+                        starSign = this.dataset.value;
+                    } else {
+                        // Regular question - store weights
+                        const weights = JSON.parse(this.dataset.weights || '{}');
+                        answers.push(weights);
+                    }
+                    
+                    currentQuestion++;
+                    updateProgress();
+                    
+                    if (currentQuestion < totalQuestions) {
+                        showQuestion(currentQuestion);
+                    } else {
+                        // Show email collection instead of results
+                        showEmailCollection();
+                    }
+                }, 300); // Small delay for visual feedback
             });
         });
 
