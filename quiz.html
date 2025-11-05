@@ -920,12 +920,35 @@
 
         document.getElementById('copyBtn').addEventListener('click', copyImageToClipboard);
 
-        function shareToTwitter() {
-            const result = calculateResult();
-            const text = `I'm a ${result.label}! Find out what kind of predictor you are 👉`;
-            const url = `https://oncue.market/quiz`;
-            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-            window.open(twitterUrl, '_blank');
+        async function shareToTwitter() {
+            // First, copy the image to clipboard
+            const canvas = document.getElementById('resultCanvas');
+            try {
+                canvas.toBlob(async (blob) => {
+                    try {
+                        const item = new ClipboardItem({ 'image/png': blob });
+                        await navigator.clipboard.write([item]);
+                        showToast('Image copied! Opening Twitter... 📋');
+                    } catch (err) {
+                        // Fallback if clipboard API fails
+                        console.log('Clipboard API not available, continuing to Twitter');
+                    }
+                    
+                    // Open Twitter with pre-filled tweet
+                    const text = `i'm going to be right, on @cuemarket`;
+                    const url = `https://oncue.market/quiz`;
+                    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+                    window.open(twitterUrl, '_blank');
+                });
+            } catch (error) {
+                // If image copy fails, still open Twitter
+                console.error('Error copying image:', error);
+                const text = `i'm going to be right, on @cuemarket`;
+                const url = `https://oncue.market/quiz`;
+                const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+                window.open(twitterUrl, '_blank');
+                showToast('Opening Twitter - paste your result image! 🐦');
+            }
         }
 
         async function submitEmail(event) {
