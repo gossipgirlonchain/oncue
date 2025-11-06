@@ -939,17 +939,21 @@
             // Set the image source
             resultImage.src = result.image;
             
-            // Preload image for copying
+            // Preload image for copying at FULL resolution
             const img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = function() {
-                // Once loaded, draw it to canvas for copy functionality
-                const maxWidth = Math.min(600, window.innerWidth - 40);
-                resultCanvas.width = maxWidth;
-                resultCanvas.height = (img.height / img.width) * maxWidth;
+                // Use FULL resolution of the original image for copying (no scaling)
+                // This ensures high quality when copied to clipboard
+                resultCanvas.width = img.width;
+                resultCanvas.height = img.height;
                 
                 const ctx = resultCanvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, resultCanvas.width, resultCanvas.height);
+                // Use high-quality rendering
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                // Draw at full resolution
+                ctx.drawImage(img, 0, 0, img.width, img.height);
             };
             img.onerror = function() {
                 console.error('Failed to load image:', result.image);
@@ -1016,7 +1020,7 @@
                 
                 // Ensure canvas has the image drawn
                 if (canvas.width > 0 && canvas.height > 0) {
-                    // Canvas already has image, use it
+                    // Canvas already has image, use it at full resolution
                     imageBlob = await new Promise((resolve, reject) => {
                         canvas.toBlob((blob) => {
                             if (blob) {
@@ -1024,30 +1028,33 @@
                             } else {
                                 reject(new Error('Failed to convert canvas to blob'));
                             }
-                        }, 'image/png');
+                        }, 'image/png', 1.0); // Use maximum quality (1.0)
                     });
                 } else {
-                    // Canvas not ready, fetch image and draw to canvas first
+                    // Canvas not ready, fetch image and draw to canvas at FULL resolution
                     const response = await fetch(resultImage.src);
                     imageBlob = await response.blob();
                     
-                    // Draw to canvas for future copies
+                    // Draw to canvas at full resolution for future copies
                     const img = new Image();
                     img.crossOrigin = 'anonymous';
                     await new Promise((resolve, reject) => {
                         img.onload = () => {
-                            const maxWidth = Math.min(600, window.innerWidth - 40);
-                            canvas.width = maxWidth;
-                            canvas.height = (img.height / img.width) * maxWidth;
+                            // Use FULL resolution (no scaling)
+                            canvas.width = img.width;
+                            canvas.height = img.height;
                             const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            // Use high-quality rendering
+                            ctx.imageSmoothingEnabled = true;
+                            ctx.imageSmoothingQuality = 'high';
+                            ctx.drawImage(img, 0, 0, img.width, img.height);
                             resolve();
                         };
                         img.onerror = reject;
                         img.src = resultImage.src;
                     });
                     
-                    // Get blob from canvas now
+                    // Get blob from canvas at full resolution
                     imageBlob = await new Promise((resolve, reject) => {
                         canvas.toBlob((blob) => {
                             if (blob) {
@@ -1055,7 +1062,7 @@
                             } else {
                                 reject(new Error('Failed to convert canvas to blob'));
                             }
-                        }, 'image/png');
+                        }, 'image/png', 1.0); // Use maximum quality (1.0)
                     });
                 }
                 
@@ -1153,7 +1160,7 @@
                 // Get image blob
                 if (canvas.width > 0 && canvas.height > 0) {
                     imageBlob = await new Promise((resolve) => {
-                        canvas.toBlob((blob) => resolve(blob), 'image/png');
+                        canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0); // Maximum quality
                     });
                 }
                 
