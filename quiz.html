@@ -1173,42 +1173,74 @@
                 const isMobile = /Mobi|Android/i.test(navigator.userAgent) || 
                                (navigator.maxTouchPoints > 0 && /iPad|iPhone|iPod/.test(navigator.userAgent));
                 
-                // On desktop, skip Web Share API and go directly to Twitter URL
-                if (!isMobile) {
-                    // Try to copy image to clipboard first
-                    try {
-                        if (imageBlob && navigator.clipboard && navigator.clipboard.write) {
-                            const item = new ClipboardItem({ 'image/png': imageBlob });
-                            await navigator.clipboard.write([item]);
-                            showToast('Image copied! Opening X... 📋');
-                        }
-                    } catch (e) {
-                        console.log('Clipboard copy failed, continuing to Twitter');
-                    }
-                    
-                    // Open Twitter with pre-populated tweet
-                    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-                    window.open(twitterUrl, '_blank');
-                    return;
-                }
-                
                 // Build Twitter URL with pre-populated tweet
                 const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
                 
-                // Try to copy image to clipboard first (both desktop and mobile)
+                // Copy image to clipboard first (both desktop and mobile)
+                // Note: Twitter intent URLs don't support image attachments,
+                // so we copy to clipboard and user can paste it
+                let imageCopied = false;
                 try {
                     if (imageBlob && navigator.clipboard && navigator.clipboard.write) {
                         const item = new ClipboardItem({ 'image/png': imageBlob });
                         await navigator.clipboard.write([item]);
-                        showToast('Image copied! Opening X... 📋');
+                        imageCopied = true;
                     }
                 } catch (e) {
                     console.log('Clipboard copy failed, continuing to Twitter');
                 }
                 
-                // Open Twitter with pre-populated tweet
-                // Try Twitter app first on mobile, then fallback to web
+                // On desktop, skip Web Share API and go directly to Twitter URL
+                if (!isMobile) {
+                    if (imageCopied) {
+                        showToast('Image copied! Paste it in X (Cmd+V) 🖼️');
+                    }
+                    // Open Twitter with pre-populated tweet
+                    window.open(twitterUrl, '_blank');
+                    return;
+                }
+                
+                // On mobile, use Web Share API to attach image to Twitter
+                // This is the only way to get image attached on mobile
+                if (isMobile && navigator.share && imageBlob) {
+                    try {
+                        const file = new File([imageBlob], 'cue-result.png', { type: 'image/png' });
+                        
+                        // Check if we can share files
+                        let canShareFiles = false;
+                        if (navigator.canShare) {
+                            try {
+                                canShareFiles = navigator.canShare({ files: [file] });
+                            } catch (e) {
+                                canShareFiles = true; // Try anyway
+                            }
+                        } else {
+                            canShareFiles = true;
+                        }
+                        
+                        if (canShareFiles) {
+                            await navigator.share({
+                                files: [file],
+                                title: text,
+                                text: text,
+                                url: url
+                            });
+                            showToast('Select X/Twitter from share menu - image will be attached! 🐦');
+                            return; // User selected an app from share sheet
+                        }
+                    } catch (shareError) {
+                        if (shareError.name === 'AbortError') {
+                            return; // User cancelled
+                        }
+                        console.log('Share failed, falling back to Twitter URL:', shareError);
+                    }
+                }
+                
+                // Fallback: Open Twitter URL directly (image will be in clipboard for paste)
                 if (isMobile) {
+                    if (imageCopied) {
+                        showToast('Image copied! Paste in X (long-press) 🖼️');
+                    }
                     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
                     if (/iPhone|iPod|iPad/i.test(userAgent)) {
                         // Try Twitter app on iOS
@@ -1230,9 +1262,6 @@
                         // Mobile but unknown platform, just open web
                         window.open(twitterUrl, '_blank');
                     }
-                } else {
-                    // Desktop - open in new tab
-                    window.open(twitterUrl, '_blank');
                 }
             } catch (error) {
                 console.error('Error sharing to Twitter:', error);
