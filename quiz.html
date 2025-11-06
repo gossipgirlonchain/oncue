@@ -68,6 +68,7 @@
             align-items: center;
             gap: 6px;
             transition: all 0.2s;
+            font-family: inherit;
         }
 
         .back-button:hover {
@@ -558,7 +559,7 @@
 <body>
     <div class="quiz-container">
         <div class="quiz-header">
-            <a href="/" class="back-button">← Back</a>
+            <button class="back-button" id="backButton" onclick="goBack()">← Back</button>
             <div class="logo">
                 <img src="oncueascii2.png" alt="CUE Logo">
             </div>
@@ -959,6 +960,10 @@
                 q.classList.toggle('active', qIndex === index);
             });
             
+            // Hide email and result containers
+            document.querySelector('.email-collection-container')?.classList.remove('active');
+            document.querySelector('.result-container')?.classList.remove('active');
+            
             // Scroll to the active question
             const activeQuestion = document.querySelector('.question-container.active');
             if (activeQuestion) {
@@ -967,6 +972,54 @@
                     block: 'start',
                     inline: 'nearest'
                 });
+            }
+        }
+        
+        function goBack() {
+            // Check if we're on the result page
+            const resultContainer = document.querySelector('.result-container');
+            if (resultContainer && resultContainer.classList.contains('active')) {
+                // Go back to email collection
+                showEmailCollection();
+                return;
+            }
+            
+            // Check if we're on email collection
+            const emailContainer = document.querySelector('.email-collection-container');
+            if (emailContainer && emailContainer.classList.contains('active')) {
+                // Go back to last question
+                currentQuestion = totalQuestions - 1;
+                updateProgress();
+                showQuestion(currentQuestion);
+                // Remove last answer
+                if (answers.length > 0) {
+                    answers.pop();
+                }
+                return;
+            }
+            
+            // If we're on a question, go back to previous question
+            if (currentQuestion > -1) {
+                // Remove last answer
+                if (currentQuestion > 0 && answers.length > 0) {
+                    answers.pop();
+                } else if (currentQuestion === 0) {
+                    // Going back from first question to star sign
+                    starSign = '';
+                }
+                
+                currentQuestion--;
+                updateProgress();
+                
+                if (currentQuestion >= -1) {
+                    showQuestion(currentQuestion);
+                } else {
+                    // If we're before star sign, go home
+                    window.location.href = '/';
+                }
+            } else {
+                // If we're on star sign question, go home
+                window.location.href = '/';
             }
         }
 
