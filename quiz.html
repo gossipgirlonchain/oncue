@@ -825,46 +825,62 @@
         const totalQuestions = 12; // 12 questions after star sign
         let uploadedPfp = null; // Store uploaded profile picture
         let currentResultImage = null; // Store current result image data
+        let currentResult = null; // Store current result object with coordinates
         
-        // Archetypes data
+        // Archetypes data with image and pfp coordinates
         const archetypes = {
             "insider": {
                 "label": "Trend Setter",
                 "signs": ["Gemini", "Libra", "Sagittarius"],
                 "blurb": "Predicts the micro before it's macro. Hyper-online, culturally fluent, allergic to lag.",
-                "image": "trendsetter.png"
+                "image": "trendsetterpic.png",
+                "pfpCoords": { x: 671, y: 345, width: 372, height: 373 }
             },
             "archivist": {
                 "label": "The Archivist",
                 "signs": ["Virgo", "Capricorn", "Cancer"],
                 "blurb": "Studies the past to forecast the future. Pattern-oriented, quietly confident.",
-                "image": "archivist.png"
+                "image": "archivistpic.png",
+                "pfpCoords": { x: 673, y: 343, width: 372, height: 374 }
             },
             "analyst": {
                 "label": "The Investor",
                 "signs": ["Taurus", "Aquarius", "Virgo"],
                 "blurb": "Data-driven, skeptical, bets on reason not vibes. Treats markets like a culture ticker.",
-                "image": "investor.png"
+                "image": "investorpic.png",
+                "pfpCoords": { x: 671, y: 344, width: 372, height: 376 }
             },
             "contrarian": {
                 "label": "The Contrarian",
                 "signs": ["Scorpio", "Aquarius", "Aries"],
                 "blurb": "If everyone's betting yes, they're betting no. Calls the flip.",
-                "image": "contratrian.png"
+                "image": "contrarianpic.png",
+                "pfpCoords": { x: 671, y: 348, width: 374, height: 374 }
             },
             "intuitive": {
                 "label": "The Manifestor",
                 "signs": ["Pisces", "Cancer", "Libra"],
                 "blurb": "Just feels it in the air. Follows mood more than metrics.",
-                "image": "intuitive.png"
+                "image": "manifestorpic.png",
+                "pfpCoords": { x: 671, y: 344, width: 372, height: 376 }
             },
             "jokester": {
                 "label": "Tylenol addict",
                 "signs": ["Leo", "Sagittarius", "Gemini"],
                 "blurb": "Predicts for the plot. Loves volatility, memes, and wildcards.",
-                "image": "jokester.png"
+                "image": "tylenolpic.png",
+                "pfpCoords": { x: 671, y: 345, width: 372, height: 373 }
             }
         };
+        
+        // Default profile picture
+        let defaultPfp = null;
+        const defaultPfpImg = new Image();
+        defaultPfpImg.crossOrigin = 'anonymous';
+        defaultPfpImg.onload = function() {
+            defaultPfp = this;
+        };
+        defaultPfpImg.src = 'defaultprofile.png';
 
         // Initialize quiz - auto-advance on option click
         document.querySelectorAll('.option').forEach(option => {
@@ -1021,6 +1037,7 @@
         function showResult() {
             document.querySelectorAll('.question-container').forEach(q => q.classList.remove('active'));
             const result = calculateResult();
+            currentResult = result; // Store current result for pfp compositing
             
             document.getElementById('resultTitle').textContent = result.label;
             document.getElementById('resultDescription').textContent = result.blurb;
@@ -1066,7 +1083,7 @@
                 resultCanvas.height = img.height;
                 
                 // Composite the image (with pfp if uploaded)
-                compositeResultImage(img, resultCanvas);
+                compositeResultImage(img, resultCanvas, result);
             };
             img.onerror = function() {
                 console.error('Failed to load image:', result.image);
@@ -1074,7 +1091,7 @@
             img.src = result.image;
         }
 
-        function compositeResultImage(baseImage, canvas) {
+        function compositeResultImage(baseImage, canvas, result) {
             const ctx = canvas.getContext('2d');
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
@@ -1082,32 +1099,26 @@
             // Draw the base result image
             ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
             
-            // If user uploaded a pfp, overlay it on the polaroid area
-            if (uploadedPfp) {
-                // Polaroid position estimates (middle-left area, ~20% from left, ~25% from top)
-                // Polaroid size is roughly 15-20% of image width/height
-                const polaroidX = canvas.width * 0.20; // 20% from left
-                const polaroidY = canvas.height * 0.25; // 25% from top
-                const polaroidWidth = canvas.width * 0.18; // 18% of image width
-                const polaroidHeight = canvas.height * 0.22; // 22% of image height
+            // Get the pfp coordinates for this specific archetype
+            const pfpCoords = result?.pfpCoords || null;
+            
+            // Determine which pfp to use (uploaded, default, or none)
+            const pfpToUse = uploadedPfp || defaultPfp;
+            
+            // If we have a pfp and coordinates, overlay it on the exact coordinates
+            if (pfpToUse && pfpCoords) {
+                // Use exact pixel coordinates from the image
+                // Scale coordinates if canvas size differs from original image size
+                const scaleX = canvas.width / baseImage.width;
+                const scaleY = canvas.height / baseImage.height;
                 
-                // Create a circular clipping path for the polaroid photo area
-                // The actual photo area is slightly inset from the polaroid frame
-                const photoX = polaroidX + polaroidWidth * 0.12;
-                const photoY = polaroidY + polaroidHeight * 0.15;
-                const photoWidth = polaroidWidth * 0.76;
-                const photoHeight = polaroidHeight * 0.70;
-                const radius = Math.min(photoWidth, photoHeight) / 2;
+                const x = pfpCoords.x * scaleX;
+                const y = pfpCoords.y * scaleY;
+                const width = pfpCoords.width * scaleX;
+                const height = pfpCoords.height * scaleY;
                 
-                // Draw uploaded pfp in circular frame
-                ctx.save();
-                ctx.beginPath();
-                ctx.arc(photoX + photoWidth / 2, photoY + photoHeight / 2, radius, 0, Math.PI * 2);
-                ctx.clip();
-                
-                // Draw the uploaded image, centered and filling the circular area
-                ctx.drawImage(uploadedPfp, photoX, photoY, photoWidth, photoHeight);
-                ctx.restore();
+                // Draw the pfp to fill the exact rectangular area
+                ctx.drawImage(pfpToUse, x, y, width, height);
             }
         }
 
@@ -1128,7 +1139,7 @@
                         const baseImg = new Image();
                         baseImg.crossOrigin = 'anonymous';
                         baseImg.onload = function() {
-                            compositeResultImage(baseImg, resultCanvas);
+                            compositeResultImage(baseImg, resultCanvas, currentResult);
                             // Update the displayed image to show the composite
                             resultImage.src = resultCanvas.toDataURL('image/png');
                         };
@@ -1152,7 +1163,7 @@
             const baseImg = new Image();
             baseImg.crossOrigin = 'anonymous';
             baseImg.onload = function() {
-                compositeResultImage(baseImg, resultCanvas);
+                compositeResultImage(baseImg, resultCanvas, currentResult);
                 resultImage.src = resultCanvas.toDataURL('image/png');
             };
             baseImg.src = currentResultImage || resultImage.src;
@@ -1259,7 +1270,7 @@
                             canvas.width = img.width;
                             canvas.height = img.height;
                             // Composite the image (with pfp if uploaded)
-                            compositeResultImage(img, canvas);
+                            compositeResultImage(img, canvas, currentResult);
                             resolve();
                         };
                         img.onerror = reject;
@@ -1373,15 +1384,15 @@
                 
                 // Get image blob - ensure composite is at full resolution
                 if (canvas.width > 0 && canvas.height > 0) {
-                    // If pfp was uploaded, ensure canvas is using full resolution base image
-                    if (uploadedPfp && currentResultImage) {
+                    // If pfp was uploaded or default exists, ensure canvas is using full resolution base image
+                    if ((uploadedPfp || defaultPfp) && currentResultImage && currentResult) {
                         const baseImg = new Image();
                         baseImg.crossOrigin = 'anonymous';
                         await new Promise((resolve, reject) => {
                             baseImg.onload = () => {
                                 canvas.width = baseImg.width;
                                 canvas.height = baseImg.height;
-                                compositeResultImage(baseImg, canvas);
+                                compositeResultImage(baseImg, canvas, currentResult);
                                 resolve();
                             };
                             baseImg.onerror = reject;
@@ -1400,7 +1411,7 @@
                     const response = await fetch(baseImageSrc);
                     imageBlob = await response.blob();
                     
-                    if (uploadedPfp) {
+                    if ((uploadedPfp || defaultPfp) && currentResult) {
                         // Draw to canvas and composite
                         const img = new Image();
                         img.crossOrigin = 'anonymous';
@@ -1408,7 +1419,7 @@
                             img.onload = () => {
                                 canvas.width = img.width;
                                 canvas.height = img.height;
-                                compositeResultImage(img, canvas);
+                                compositeResultImage(img, canvas, currentResult);
                                 resolve();
                             };
                             img.onerror = reject;

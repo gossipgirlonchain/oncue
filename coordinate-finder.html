@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coordinate Finder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .image-container {
+            margin: 20px 0;
+            border: 2px solid #ddd;
+            padding: 10px;
+            background: white;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            cursor: crosshair;
+            display: block;
+        }
+        .coordinates {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .click-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+        }
+        button {
+            margin: 10px 5px;
+            padding: 10px 20px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Coordinate Finder for Result Images</h1>
+        <p>Click on the top-left corner of the blank square, then on the bottom-right corner to get coordinates.</p>
+        
+        <div id="imageList"></div>
+    </div>
+
+    <script>
+        const images = [
+            'archivistpic.png',
+            'contrarianpic.png',
+            'investorpic.png',
+            'manifestorpic.png',
+            'tylenolpic.png',
+            'trendsetterpic.png'
+        ];
+
+        images.forEach((imageName, index) => {
+            const container = document.createElement('div');
+            container.className = 'image-container';
+            container.innerHTML = `
+                <h3>${imageName}</h3>
+                <img src="${imageName}" alt="${imageName}" id="img-${index}" data-image="${imageName}">
+                <div class="coordinates" id="coords-${index}">
+                    Click on the top-left corner of the blank square, then bottom-right corner
+                </div>
+                <div class="click-info" id="info-${index}">
+                    Waiting for clicks...
+                </div>
+            `;
+            document.getElementById('imageList').appendChild(container);
+
+            const img = document.getElementById(`img-${index}`);
+            const coordsDiv = document.getElementById(`coords-${index}`);
+            const infoDiv = document.getElementById(`info-${index}`);
+            
+            let clickCount = 0;
+            let topLeft = null;
+            let bottomRight = null;
+
+            img.addEventListener('click', function(e) {
+                const rect = img.getBoundingClientRect();
+                const scaleX = img.naturalWidth / rect.width;
+                const scaleY = img.naturalHeight / rect.height;
+                
+                const x = Math.round((e.clientX - rect.left) * scaleX);
+                const y = Math.round((e.clientY - rect.top) * scaleY);
+
+                if (clickCount === 0) {
+                    topLeft = { x, y };
+                    infoDiv.textContent = `Top-left: (${x}, ${y}) - Now click bottom-right corner`;
+                    clickCount = 1;
+                } else if (clickCount === 1) {
+                    bottomRight = { x, y };
+                    const width = bottomRight.x - topLeft.x;
+                    const height = bottomRight.y - topLeft.y;
+                    
+                    coordsDiv.innerHTML = `
+                        <strong>Coordinates for ${imageName}:</strong><br>
+                        Top-left: (${topLeft.x}, ${topLeft.y})<br>
+                        Bottom-right: (${bottomRight.x}, ${bottomRight.y})<br>
+                        Width: ${width}px<br>
+                        Height: ${height}px<br>
+                        <code>{ x: ${topLeft.x}, y: ${topLeft.y}, width: ${width}, height: ${height} }</code>
+                    `;
+                    infoDiv.textContent = `Complete! Click again to reset.`;
+                    clickCount = 2;
+                } else {
+                    // Reset
+                    clickCount = 0;
+                    topLeft = null;
+                    bottomRight = null;
+                    coordsDiv.textContent = 'Click on the top-left corner of the blank square, then bottom-right corner';
+                    infoDiv.textContent = 'Waiting for clicks...';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
