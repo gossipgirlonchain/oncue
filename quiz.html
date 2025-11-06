@@ -798,11 +798,14 @@
             </div>
 
             <div class="pfp-upload-section">
-                <label for="pfpUpload" class="pfp-upload-btn">
-                    📷 Upload Your Photo (Optional)
-                </label>
+                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <label for="pfpUpload" class="pfp-upload-btn">
+                        📷 Upload Your Photo
+                    </label>
+                    <button class="pfp-upload-btn" id="useDefaultBtn">✨ Use Default</button>
+                </div>
                 <input type="file" id="pfpUpload" accept="image/*" style="display: none;">
-                <button class="pfp-remove-btn" id="removePfpBtn" style="display: none;">Remove Photo</button>
+                <button class="pfp-remove-btn" id="removePfpBtn" style="display: none; margin-top: 10px;">Remove Photo</button>
             </div>
 
             <div class="share-buttons">
@@ -1157,7 +1160,7 @@
             this.style.display = 'none';
             document.getElementById('pfpUpload').value = '';
             
-            // Redraw without pfp
+            // Redraw without pfp (will use default if available)
             const resultImage = document.getElementById('resultImage');
             const resultCanvas = document.getElementById('resultCanvas');
             const baseImg = new Image();
@@ -1168,6 +1171,50 @@
             };
             baseImg.src = currentResultImage || resultImage.src;
         });
+
+        // Handle "Use Default" button
+        document.getElementById('useDefaultBtn').addEventListener('click', function() {
+            // Clear uploaded pfp
+            uploadedPfp = null;
+            document.getElementById('pfpUpload').value = '';
+            document.getElementById('removePfpBtn').style.display = 'inline-block';
+            
+            // Wait for default pfp to load if not already loaded
+            if (defaultPfp) {
+                updateResultWithPfp();
+            } else {
+                // Wait for default to load
+                const checkDefault = setInterval(() => {
+                    if (defaultPfp) {
+                        clearInterval(checkDefault);
+                        updateResultWithPfp();
+                    }
+                }, 100);
+                
+                // Timeout after 3 seconds
+                setTimeout(() => {
+                    clearInterval(checkDefault);
+                    if (defaultPfp) {
+                        updateResultWithPfp();
+                    } else {
+                        showToast('Default picture loading...');
+                    }
+                }, 3000);
+            }
+        });
+
+        function updateResultWithPfp() {
+            const resultImage = document.getElementById('resultImage');
+            const resultCanvas = document.getElementById('resultCanvas');
+            const baseImg = new Image();
+            baseImg.crossOrigin = 'anonymous';
+            baseImg.onload = function() {
+                compositeResultImage(baseImg, resultCanvas, currentResult);
+                resultImage.src = resultCanvas.toDataURL('image/png');
+                showToast('Using default picture ✨');
+            };
+            baseImg.src = currentResultImage || resultImage.src;
+        }
 
         function generateShareableImage(result) {
             const canvas = document.getElementById('resultCanvas');
