@@ -1452,7 +1452,7 @@
         async function shareToTwitter() {
             const resultImage = document.getElementById('resultImage');
             const canvas = document.getElementById('resultCanvas');
-            const text = `i'm going to be right, on @cuemarket take the quiz too https://oncue.market/quiz 
+            const text = `i'm going to be right, on @cuemarket take the quiz too
 
 *paste your image result*`;
             const url = `https://oncue.market/quiz`;
@@ -1585,7 +1585,7 @@
                     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
                     if (/iPhone|iPod|iPad/i.test(userAgent)) {
                         // Try Twitter app on iOS
-                        const twitterAppUrl = `twitter://post?message=${encodeURIComponent(text + ' ' + url)}`;
+                        const twitterAppUrl = `twitter://post?message=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
                         window.location.href = twitterAppUrl;
                         // Fallback to web after short delay
                         setTimeout(() => {
