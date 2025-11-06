@@ -1121,13 +1121,37 @@
                 const scaleX = canvas.width / baseImage.width;
                 const scaleY = canvas.height / baseImage.height;
                 
-                const x = pfpCoords.x * scaleX;
-                const y = pfpCoords.y * scaleY;
-                const width = pfpCoords.width * scaleX;
-                const height = pfpCoords.height * scaleY;
+                const destX = pfpCoords.x * scaleX;
+                const destY = pfpCoords.y * scaleY;
+                const destWidth = pfpCoords.width * scaleX;
+                const destHeight = pfpCoords.height * scaleY;
                 
-                // Draw the pfp to fill the exact rectangular area
-                ctx.drawImage(pfpToUse, x, y, width, height);
+                // Calculate aspect ratios
+                const sourceAspect = pfpToUse.width / pfpToUse.height;
+                const destAspect = destWidth / destHeight;
+                
+                // Crop source to match destination aspect ratio (centered crop)
+                let sourceX = 0;
+                let sourceY = 0;
+                let sourceWidth = pfpToUse.width;
+                let sourceHeight = pfpToUse.height;
+                
+                if (sourceAspect > destAspect) {
+                    // Source is wider - crop left/right (maintain height, crop width)
+                    sourceWidth = pfpToUse.height * destAspect;
+                    sourceX = (pfpToUse.width - sourceWidth) / 2;
+                } else {
+                    // Source is taller - crop top/bottom (maintain width, crop height)
+                    sourceHeight = pfpToUse.width / destAspect;
+                    sourceY = (pfpToUse.height - sourceHeight) / 2;
+                }
+                
+                // Draw the cropped portion to fill the destination rectangle (no distortion)
+                ctx.drawImage(
+                    pfpToUse,
+                    sourceX, sourceY, sourceWidth, sourceHeight, // Source crop
+                    destX, destY, destWidth, destHeight // Destination fill
+                );
             }
         }
 
