@@ -1021,8 +1021,12 @@
                     imageBlob = await response.blob();
                 }
                 
-                // Check if Web Share API is available (mobile)
-                if (navigator.share) {
+                // Detect if we're on mobile
+                const isMobile = /Mobi|Android/i.test(navigator.userAgent) || 
+                               (navigator.maxTouchPoints > 0 && /iPad|iPhone|iPod/.test(navigator.userAgent));
+                
+                // Only use Web Share API on mobile (for saving to Photos)
+                if (isMobile && navigator.share) {
                     try {
                         const file = new File([imageBlob], 'cue-predictor-result.png', { type: 'image/png' });
                         
@@ -1058,29 +1062,31 @@
                     }
                 }
                 
-                // Try clipboard API
+                // Desktop: Use Clipboard API directly (no share sheet)
+                // Mobile fallback: Try clipboard API if Web Share failed
                 try {
                     const item = new ClipboardItem({ 'image/png': imageBlob });
                     await navigator.clipboard.write([item]);
                     showToast('Image copied to clipboard! 📋');
                 } catch (clipboardError) {
-                    // Fallback: open image in new tab for long-press save
+                    // Fallback: open image in new tab for manual save
                     const imageUrl = URL.createObjectURL(imageBlob);
                     const newWindow = window.open(imageUrl, '_blank');
                     if (newWindow) {
-                        showToast('Image opened - long press to save to Photos 📸');
+                        showToast(isMobile ? 'Image opened - long press to save to Photos 📸' : 'Image opened - right-click to save 📥');
                     } else {
-                        // Popup blocked, show image in current window
+                        // Popup blocked, use download link
                         const link = document.createElement('a');
                         link.href = imageUrl;
-                        link.target = '_blank';
+                        link.download = 'cue-predictor-result.png';
                         link.click();
-                        showToast('Image opened - long press to save to Photos 📸');
+                        showToast('Image download started! 📥');
+                        setTimeout(() => URL.revokeObjectURL(imageUrl), 100);
                     }
                 }
             } catch (err) {
                 console.error('Error saving image:', err);
-                showToast('Tap and hold the image to save to Photos 📸');
+                showToast(isMobile ? 'Tap and hold the image to save to Photos 📸' : 'Right-click the image to save 📥');
             }
         }
 
