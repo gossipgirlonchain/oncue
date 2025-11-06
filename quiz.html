@@ -256,17 +256,22 @@
 
         .result-container.active {
             display: block !important;
+            visibility: visible !important;
         }
         
         .result-container.active .share-buttons {
             display: flex !important;
             visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            z-index: 10 !important;
         }
         
         .result-container.active .share-btn {
             display: flex !important;
             visibility: visible !important;
             opacity: 1 !important;
+            position: relative !important;
         }
 
         .result-title {
@@ -358,13 +363,15 @@
 
         .share-buttons {
             display: flex !important;
-            flex-direction: column;
+            flex-direction: column !important;
             gap: 15px;
-            margin: 30px 0;
-            width: 100%;
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
+            margin: 30px auto !important;
+            width: 100% !important;
+            max-width: 400px !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            z-index: 10 !important;
         }
 
         .share-btn {
@@ -384,6 +391,9 @@
             width: 100%;
             visibility: visible !important;
             opacity: 1 !important;
+            position: relative !important;
+            z-index: 10 !important;
+            min-height: 50px !important;
         }
 
         .share-btn:hover {
@@ -1097,6 +1107,7 @@
 
         function showResult() {
             document.querySelectorAll('.question-container').forEach(q => q.classList.remove('active'));
+            document.querySelector('.email-collection-container')?.classList.remove('active');
             const result = calculateResult();
             currentResult = result; // Store current result for pfp compositing
             
@@ -1107,7 +1118,23 @@
             displayResultImage(result);
             
             const resultContainer = document.querySelector('.result-container');
+            const shareButtons = document.querySelector('.share-buttons');
+            const shareBtns = document.querySelectorAll('.share-btn');
+            
             resultContainer.classList.add('active');
+            
+            // Force visibility of share buttons
+            if (shareButtons) {
+                shareButtons.style.display = 'flex';
+                shareButtons.style.visibility = 'visible';
+                shareButtons.style.opacity = '1';
+            }
+            
+            shareBtns.forEach(btn => {
+                btn.style.display = 'flex';
+                btn.style.visibility = 'visible';
+                btn.style.opacity = '1';
+            });
             
             // Scroll to result
             resultContainer.scrollIntoView({ 
