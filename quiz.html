@@ -220,7 +220,18 @@
         }
 
         .result-container.active {
-            display: block;
+            display: block !important;
+        }
+        
+        .result-container.active .share-buttons {
+            display: flex !important;
+            visibility: visible !important;
+        }
+        
+        .result-container.active .share-btn {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
 
         .result-title {
@@ -260,10 +271,14 @@
         }
 
         .share-buttons {
-            display: flex;
+            display: flex !important;
             flex-direction: column;
             gap: 15px;
             margin: 30px 0;
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .share-btn {
@@ -276,10 +291,13 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            display: flex;
+            display: flex !important;
             align-items: center;
             justify-content: center;
             gap: 10px;
+            width: 100%;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
 
         .share-btn:hover {
