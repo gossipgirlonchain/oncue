@@ -669,7 +669,8 @@
             </div>
             
             <div class="shareable-image" id="shareableImage">
-                <canvas id="resultCanvas" width="600" height="400"></canvas>
+                <img id="resultImage" src="" alt="Quiz Result" style="max-width: 100%; height: auto; display: none;">
+                <canvas id="resultCanvas" width="600" height="400" style="display: none;"></canvas>
             </div>
 
             <div class="share-buttons">
@@ -696,32 +697,38 @@
             "insider": {
                 "label": "The Insider / Trend Oracle",
                 "signs": ["Gemini", "Libra", "Sagittarius"],
-                "blurb": "Predicts the micro before it's macro. Hyper-online, culturally fluent, allergic to lag."
+                "blurb": "Predicts the micro before it's macro. Hyper-online, culturally fluent, allergic to lag.",
+                "image": "trendsetter.png"
             },
             "archivist": {
                 "label": "The Archivist",
                 "signs": ["Virgo", "Capricorn", "Cancer"],
-                "blurb": "Studies the past to forecast the future. Pattern-oriented, quietly confident."
+                "blurb": "Studies the past to forecast the future. Pattern-oriented, quietly confident.",
+                "image": "archivist.png"
             },
             "analyst": {
                 "label": "The Analyst / Investor",
                 "signs": ["Taurus", "Aquarius", "Virgo"],
-                "blurb": "Data-driven, skeptical, bets on reason not vibes. Treats markets like a culture ticker."
+                "blurb": "Data-driven, skeptical, bets on reason not vibes. Treats markets like a culture ticker.",
+                "image": "investor.png"
             },
             "contrarian": {
                 "label": "The Contrarian",
                 "signs": ["Scorpio", "Aquarius", "Aries"],
-                "blurb": "If everyone's betting yes, they're betting no. Calls the flip."
+                "blurb": "If everyone's betting yes, they're betting no. Calls the flip.",
+                "image": "contratrian.png"
             },
             "intuitive": {
                 "label": "The Intuitive",
                 "signs": ["Pisces", "Cancer", "Libra"],
-                "blurb": "Just feels it in the air. Follows mood more than metrics."
+                "blurb": "Just feels it in the air. Follows mood more than metrics.",
+                "image": "intuitive.png"
             },
             "jokester": {
                 "label": "The Jokester / Chaos Prophet",
                 "signs": ["Leo", "Sagittarius", "Gemini"],
-                "blurb": "Predicts for the plot. Loves volatility, memes, and wildcards."
+                "blurb": "Predicts for the plot. Loves volatility, memes, and wildcards.",
+                "image": "jokester.png"
             }
         };
 
@@ -884,8 +891,8 @@
             document.getElementById('resultTitle').textContent = result.label;
             document.getElementById('resultDescription').textContent = result.blurb;
             
-            // Generate shareable image
-            generateShareableImage(result);
+            // Display the result image
+            displayResultImage(result);
             
             const resultContainer = document.querySelector('.result-container');
             resultContainer.classList.add('active');
@@ -896,6 +903,32 @@
                 block: 'start',
                 inline: 'nearest'
             });
+        }
+        
+        function displayResultImage(result) {
+            const resultImage = document.getElementById('resultImage');
+            const resultCanvas = document.getElementById('resultCanvas');
+            
+            // Hide canvas, show image
+            resultCanvas.style.display = 'none';
+            resultImage.style.display = 'block';
+            
+            // Set the image source
+            resultImage.src = result.image;
+            
+            // Preload image for copying
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                // Once loaded, draw it to canvas for copy functionality
+                const maxWidth = Math.min(600, window.innerWidth - 40);
+                resultCanvas.width = maxWidth;
+                resultCanvas.height = (img.height / img.width) * maxWidth;
+                
+                const ctx = resultCanvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, resultCanvas.width, resultCanvas.height);
+            };
+            img.src = result.image;
         }
 
         function generateShareableImage(result) {
@@ -949,18 +982,61 @@
         }
 
         async function copyImageToClipboard() {
+            const resultImage = document.getElementById('resultImage');
             const canvas = document.getElementById('resultCanvas');
+            
             try {
-                canvas.toBlob(async (blob) => {
-                    const item = new ClipboardItem({ 'image/png': blob });
-                    await navigator.clipboard.write([item]);
-                    showToast('Image copied to clipboard! 📋');
-                });
+                // Try to use canvas if available (has image drawn)
+                if (canvas.width > 0 && canvas.height > 0) {
+                    canvas.toBlob(async (blob) => {
+                        try {
+                            const item = new ClipboardItem({ 'image/png': blob });
+                            await navigator.clipboard.write([item]);
+                            showToast('Image copied to clipboard! 📋');
+                        } catch (e) {
+                            // Fallback: fetch image directly
+                            fetch(resultImage.src)
+                                .then(res => res.blob())
+                                .then(async (blob) => {
+                                    try {
+                                        const item = new ClipboardItem({ 'image/png': blob });
+                                        await navigator.clipboard.write([item]);
+                                        showToast('Image copied to clipboard! 📋');
+                                    } catch (err) {
+                                        // Fallback: download image
+                                        const link = document.createElement('a');
+                                        link.download = 'cue-predictor-result.png';
+                                        link.href = resultImage.src;
+                                        link.click();
+                                        showToast('Image download started! 📥');
+                                    }
+                                });
+                        }
+                    });
+                } else {
+                    // Canvas not ready, fetch image directly
+                    fetch(resultImage.src)
+                        .then(res => res.blob())
+                        .then(async (blob) => {
+                            try {
+                                const item = new ClipboardItem({ 'image/png': blob });
+                                await navigator.clipboard.write([item]);
+                                showToast('Image copied to clipboard! 📋');
+                            } catch (err) {
+                                // Fallback: download image
+                                const link = document.createElement('a');
+                                link.download = 'cue-predictor-result.png';
+                                link.href = resultImage.src;
+                                link.click();
+                                showToast('Image download started! 📥');
+                            }
+                        });
+                }
             } catch (err) {
-                // Fallback: download image
+                // Final fallback: download image
                 const link = document.createElement('a');
                 link.download = 'cue-predictor-result.png';
-                link.href = canvas.toDataURL();
+                link.href = resultImage.src;
                 link.click();
                 showToast('Image download started! 📥');
             }
@@ -970,24 +1046,39 @@
 
         async function shareToTwitter() {
             // First, copy the image to clipboard
+            const resultImage = document.getElementById('resultImage');
             const canvas = document.getElementById('resultCanvas');
+            
             try {
-                canvas.toBlob(async (blob) => {
-                    try {
-                        const item = new ClipboardItem({ 'image/png': blob });
-                        await navigator.clipboard.write([item]);
-                        showToast('Image copied! Opening Twitter... 📋');
-                    } catch (err) {
-                        // Fallback if clipboard API fails
-                        console.log('Clipboard API not available, continuing to Twitter');
-                    }
-                    
-                    // Open Twitter with pre-filled tweet
-                    const text = `i'm going to be right, on @cuemarket`;
-                    const url = `https://oncue.market/quiz`;
-                    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-                    window.open(twitterUrl, '_blank');
-                });
+                let imageBlob = null;
+                
+                // Try to get image from canvas or fetch directly
+                if (canvas.width > 0 && canvas.height > 0) {
+                    imageBlob = await new Promise((resolve) => {
+                        canvas.toBlob((blob) => resolve(blob), 'image/png');
+                    });
+                }
+                
+                // If canvas not ready, fetch image directly
+                if (!imageBlob) {
+                    const response = await fetch(resultImage.src);
+                    imageBlob = await response.blob();
+                }
+                
+                // Copy to clipboard
+                try {
+                    const item = new ClipboardItem({ 'image/png': imageBlob });
+                    await navigator.clipboard.write([item]);
+                    showToast('Image copied! Opening Twitter... 📋');
+                } catch (e) {
+                    console.log('Clipboard API not available, continuing to Twitter');
+                }
+                
+                // Open Twitter with pre-filled tweet
+                const text = `i'm going to be right, on @cuemarket`;
+                const url = `https://oncue.market/quiz`;
+                const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+                window.open(twitterUrl, '_blank');
             } catch (error) {
                 // If image copy fails, still open Twitter
                 console.error('Error copying image:', error);
