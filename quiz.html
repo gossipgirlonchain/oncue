@@ -45,6 +45,40 @@
             border-bottom: 2px solid #ced4da;
             padding: 30px 20px;
             text-align: center;
+            position: relative;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 20%, #e9ecef 80%, #dee2e6 100%);
+            border: 1px solid #ced4da;
+            border-bottom: 2px solid #adb5bd;
+            border-right: 1px solid #adb5bd;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            color: #374151;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .back-button:hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f4 20%, #e3e7ea 80%, #d6dbdf 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .back-button:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
         }
 
         .logo {
@@ -275,6 +309,52 @@
             border-radius: 0;
         }
 
+        .pfp-upload-section {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pfp-upload-btn {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 20%, #e9ecef 80%, #dee2e6 100%);
+            border: 1px solid #ced4da;
+            border-bottom: 2px solid #adb5bd;
+            border-right: 1px solid #adb5bd;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            color: #374151;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-block;
+        }
+
+        .pfp-upload-btn:hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f4 20%, #e3e7ea 80%, #d6dbdf 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .pfp-remove-btn {
+            background: transparent;
+            border: 1px solid #ced4da;
+            color: #6b7280;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .pfp-remove-btn:hover {
+            background: #f8f9fa;
+            color: #374151;
+        }
+
         .share-buttons {
             display: flex !important;
             flex-direction: column;
@@ -406,6 +486,20 @@
             box-shadow: none;
         }
 
+        /* Mobile styles */
+        @media (max-width: 768px) {
+            .back-button {
+                top: 15px;
+                left: 15px;
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+
+            .quiz-header {
+                padding: 25px 15px;
+            }
+        }
+
         .toast {
             position: fixed;
             bottom: 20px;
@@ -464,6 +558,7 @@
 <body>
     <div class="quiz-container">
         <div class="quiz-header">
+            <a href="/" class="back-button">← Back</a>
             <div class="logo">
                 <img src="oncueascii2.png" alt="CUE Logo">
             </div>
@@ -702,6 +797,14 @@
                 <canvas id="resultCanvas" width="600" height="400" style="display: none;"></canvas>
             </div>
 
+            <div class="pfp-upload-section">
+                <label for="pfpUpload" class="pfp-upload-btn">
+                    📷 Upload Your Photo (Optional)
+                </label>
+                <input type="file" id="pfpUpload" accept="image/*" style="display: none;">
+                <button class="pfp-remove-btn" id="removePfpBtn" style="display: none;">Remove Photo</button>
+            </div>
+
             <div class="share-buttons">
                 <button class="share-btn copy-btn" id="copyBtn">
                     📋 Copy Image to Clipboard
@@ -720,6 +823,8 @@
         let answers = [];
         let starSign = '';
         const totalQuestions = 12; // 12 questions after star sign
+        let uploadedPfp = null; // Store uploaded profile picture
+        let currentResultImage = null; // Store current result image data
         
         // Archetypes data
         const archetypes = {
@@ -938,12 +1043,18 @@
             const resultImage = document.getElementById('resultImage');
             const resultCanvas = document.getElementById('resultCanvas');
             
+            // Reset uploaded pfp when showing new result
+            uploadedPfp = null;
+            document.getElementById('removePfpBtn').style.display = 'none';
+            document.getElementById('pfpUpload').value = '';
+            
             // Hide canvas, show image
             resultCanvas.style.display = 'none';
             resultImage.style.display = 'block';
             
             // Set the image source
             resultImage.src = result.image;
+            currentResultImage = result.image;
             
             // Preload image for copying at FULL resolution
             const img = new Image();
@@ -954,18 +1065,98 @@
                 resultCanvas.width = img.width;
                 resultCanvas.height = img.height;
                 
-                const ctx = resultCanvas.getContext('2d');
-                // Use high-quality rendering
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = 'high';
-                // Draw at full resolution
-                ctx.drawImage(img, 0, 0, img.width, img.height);
+                // Composite the image (with pfp if uploaded)
+                compositeResultImage(img, resultCanvas);
             };
             img.onerror = function() {
                 console.error('Failed to load image:', result.image);
             };
             img.src = result.image;
         }
+
+        function compositeResultImage(baseImage, canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            
+            // Draw the base result image
+            ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
+            
+            // If user uploaded a pfp, overlay it on the polaroid area
+            if (uploadedPfp) {
+                // Polaroid position estimates (middle-left area, ~20% from left, ~25% from top)
+                // Polaroid size is roughly 15-20% of image width/height
+                const polaroidX = canvas.width * 0.20; // 20% from left
+                const polaroidY = canvas.height * 0.25; // 25% from top
+                const polaroidWidth = canvas.width * 0.18; // 18% of image width
+                const polaroidHeight = canvas.height * 0.22; // 22% of image height
+                
+                // Create a circular clipping path for the polaroid photo area
+                // The actual photo area is slightly inset from the polaroid frame
+                const photoX = polaroidX + polaroidWidth * 0.12;
+                const photoY = polaroidY + polaroidHeight * 0.15;
+                const photoWidth = polaroidWidth * 0.76;
+                const photoHeight = polaroidHeight * 0.70;
+                const radius = Math.min(photoWidth, photoHeight) / 2;
+                
+                // Draw uploaded pfp in circular frame
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(photoX + photoWidth / 2, photoY + photoHeight / 2, radius, 0, Math.PI * 2);
+                ctx.clip();
+                
+                // Draw the uploaded image, centered and filling the circular area
+                ctx.drawImage(uploadedPfp, photoX, photoY, photoWidth, photoHeight);
+                ctx.restore();
+            }
+        }
+
+        // Handle pfp upload
+        document.getElementById('pfpUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        uploadedPfp = img;
+                        document.getElementById('removePfpBtn').style.display = 'inline-block';
+                        
+                        // Update the canvas with the composite image
+                        const resultImage = document.getElementById('resultImage');
+                        const resultCanvas = document.getElementById('resultCanvas');
+                        const baseImg = new Image();
+                        baseImg.crossOrigin = 'anonymous';
+                        baseImg.onload = function() {
+                            compositeResultImage(baseImg, resultCanvas);
+                            // Update the displayed image to show the composite
+                            resultImage.src = resultCanvas.toDataURL('image/png');
+                        };
+                        baseImg.src = currentResultImage || resultImage.src;
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Handle pfp removal
+        document.getElementById('removePfpBtn').addEventListener('click', function() {
+            uploadedPfp = null;
+            this.style.display = 'none';
+            document.getElementById('pfpUpload').value = '';
+            
+            // Redraw without pfp
+            const resultImage = document.getElementById('resultImage');
+            const resultCanvas = document.getElementById('resultCanvas');
+            const baseImg = new Image();
+            baseImg.crossOrigin = 'anonymous';
+            baseImg.onload = function() {
+                compositeResultImage(baseImg, resultCanvas);
+                resultImage.src = resultCanvas.toDataURL('image/png');
+            };
+            baseImg.src = currentResultImage || resultImage.src;
+        });
 
         function generateShareableImage(result) {
             const canvas = document.getElementById('resultCanvas');
@@ -1024,8 +1215,24 @@
             try {
                 let imageBlob = null;
                 
-                // Ensure canvas has the image drawn
+                // Ensure canvas has the image drawn and is up to date
                 if (canvas.width > 0 && canvas.height > 0) {
+                    // If pfp was uploaded, ensure canvas is using full resolution base image
+                    if (uploadedPfp && currentResultImage) {
+                        const baseImg = new Image();
+                        baseImg.crossOrigin = 'anonymous';
+                        await new Promise((resolve, reject) => {
+                            baseImg.onload = () => {
+                                canvas.width = baseImg.width;
+                                canvas.height = baseImg.height;
+                                compositeResultImage(baseImg, canvas);
+                                resolve();
+                            };
+                            baseImg.onerror = reject;
+                            baseImg.src = currentResultImage;
+                        });
+                    }
+                    
                     // Canvas already has image, use it at full resolution
                     imageBlob = await new Promise((resolve, reject) => {
                         canvas.toBlob((blob) => {
@@ -1037,8 +1244,10 @@
                         }, 'image/png', 1.0); // Use maximum quality (1.0)
                     });
                 } else {
-                    // Canvas not ready, fetch image and draw to canvas at FULL resolution
-                    const response = await fetch(resultImage.src);
+                    // Canvas not ready, fetch base image and draw to canvas at FULL resolution
+                    // Use the original result image (not the composite data URL) to get full resolution
+                    const baseImageSrc = currentResultImage || resultImage.src;
+                    const response = await fetch(baseImageSrc);
                     imageBlob = await response.blob();
                     
                     // Draw to canvas at full resolution for future copies
@@ -1049,15 +1258,12 @@
                             // Use FULL resolution (no scaling)
                             canvas.width = img.width;
                             canvas.height = img.height;
-                            const ctx = canvas.getContext('2d');
-                            // Use high-quality rendering
-                            ctx.imageSmoothingEnabled = true;
-                            ctx.imageSmoothingQuality = 'high';
-                            ctx.drawImage(img, 0, 0, img.width, img.height);
+                            // Composite the image (with pfp if uploaded)
+                            compositeResultImage(img, canvas);
                             resolve();
                         };
                         img.onerror = reject;
-                        img.src = resultImage.src;
+                        img.src = baseImageSrc;
                     });
                     
                     // Get blob from canvas at full resolution
@@ -1165,16 +1371,54 @@
             try {
                 let imageBlob = null;
                 
-                // Get image blob
+                // Get image blob - ensure composite is at full resolution
                 if (canvas.width > 0 && canvas.height > 0) {
+                    // If pfp was uploaded, ensure canvas is using full resolution base image
+                    if (uploadedPfp && currentResultImage) {
+                        const baseImg = new Image();
+                        baseImg.crossOrigin = 'anonymous';
+                        await new Promise((resolve, reject) => {
+                            baseImg.onload = () => {
+                                canvas.width = baseImg.width;
+                                canvas.height = baseImg.height;
+                                compositeResultImage(baseImg, canvas);
+                                resolve();
+                            };
+                            baseImg.onerror = reject;
+                            baseImg.src = currentResultImage;
+                        });
+                    }
+                    
                     imageBlob = await new Promise((resolve) => {
                         canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0); // Maximum quality
                     });
                 }
                 
                 if (!imageBlob) {
-                    const response = await fetch(resultImage.src);
+                    // Fallback: fetch base image and composite if needed
+                    const baseImageSrc = currentResultImage || resultImage.src;
+                    const response = await fetch(baseImageSrc);
                     imageBlob = await response.blob();
+                    
+                    if (uploadedPfp) {
+                        // Draw to canvas and composite
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
+                        await new Promise((resolve, reject) => {
+                            img.onload = () => {
+                                canvas.width = img.width;
+                                canvas.height = img.height;
+                                compositeResultImage(img, canvas);
+                                resolve();
+                            };
+                            img.onerror = reject;
+                            img.src = baseImageSrc;
+                        });
+                        
+                        imageBlob = await new Promise((resolve) => {
+                            canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
+                        });
+                    }
                 }
                 
                 // Detect if we're on mobile
