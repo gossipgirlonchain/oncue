@@ -882,8 +882,13 @@
         defaultPfpImg.crossOrigin = 'anonymous';
         defaultPfpImg.onload = function() {
             defaultPfp = this;
+            console.log('Default profile picture loaded');
         };
-        defaultPfpImg.src = 'defaultprofile.png';
+        defaultPfpImg.onerror = function() {
+            console.error('Failed to load default profile picture');
+        };
+        // Add cache-busting query parameter to ensure latest version loads
+        defaultPfpImg.src = 'defaultprofile.png?v=' + Date.now();
 
         // Initialize quiz - auto-advance on option click
         document.querySelectorAll('.option').forEach(option => {
