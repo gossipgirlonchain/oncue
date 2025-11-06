@@ -1063,9 +1063,10 @@
             const resultImage = document.getElementById('resultImage');
             const resultCanvas = document.getElementById('resultCanvas');
             
-            // Reset uploaded pfp when showing new result
+            // Reset uploaded pfp when showing new result (but keep default available)
             uploadedPfp = null;
-            document.getElementById('removePfpBtn').style.display = 'none';
+            // Only show remove button if default will be used (auto-applied)
+            document.getElementById('removePfpBtn').style.display = defaultPfp ? 'inline-block' : 'none';
             document.getElementById('pfpUpload').value = '';
             
             // Hide canvas, show image
@@ -1105,7 +1106,7 @@
             // Get the pfp coordinates for this specific archetype
             const pfpCoords = result?.pfpCoords || null;
             
-            // Determine which pfp to use (uploaded, default, or none)
+            // Determine which pfp to use (uploaded first, then default if available)
             const pfpToUse = uploadedPfp || defaultPfp;
             
             // If we have a pfp and coordinates, overlay it on the exact coordinates
@@ -1173,8 +1174,9 @@
         });
 
         // Handle "Use Default" button
-        document.getElementById('useDefaultBtn').addEventListener('click', function() {
-            // Clear uploaded pfp
+        document.getElementById('useDefaultBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            // Clear uploaded pfp (we'll use default instead)
             uploadedPfp = null;
             document.getElementById('pfpUpload').value = '';
             document.getElementById('removePfpBtn').style.display = 'inline-block';
