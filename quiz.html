@@ -1541,68 +1541,46 @@
                     return;
                 }
                 
-                // On mobile, use Web Share API to attach image to Twitter
-                // This is the only way to get image attached on mobile
-                if (isMobile && navigator.share && imageBlob) {
-                    try {
-                        const file = new File([imageBlob], 'cue-result.png', { type: 'image/png' });
-                        
-                        // Check if we can share files
-                        let canShareFiles = false;
-                        if (navigator.canShare) {
-                            try {
-                                canShareFiles = navigator.canShare({ files: [file] });
-                            } catch (e) {
-                                canShareFiles = true; // Try anyway
-                            }
-                        } else {
-                            canShareFiles = true;
-                        }
-                        
-                        if (canShareFiles) {
-                            await navigator.share({
-                                files: [file],
-                                title: text,
-                                text: text,
-                                url: url
-                            });
-                            showToast('Select X/Twitter from share menu - image will be attached! 🐦');
-                            return; // User selected an app from share sheet
-                        }
-                    } catch (shareError) {
-                        if (shareError.name === 'AbortError') {
-                            return; // User cancelled
-                        }
-                        console.log('Share failed, falling back to Twitter URL:', shareError);
-                    }
-                }
-                
-                // Fallback: Open Twitter URL directly (image will be in clipboard for paste)
+                // On mobile, try to open Twitter/X app directly
                 if (isMobile) {
                     if (imageCopied) {
-                        showToast('Image copied! Paste in X (long-press) 🖼️');
+                        showToast('Image copied! Opening X app... 🖼️');
                     }
                     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+                    
+                    // Try Twitter/X app on iOS
                     if (/iPhone|iPod|iPad/i.test(userAgent)) {
-                        // Try Twitter app on iOS
-                        const twitterAppUrl = `twitter://post?message=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-                        window.location.href = twitterAppUrl;
-                        // Fallback to web after short delay
+                        // Try X app first (newer name)
+                        const xAppUrl = `x-twitter://post?message=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+                        window.location.href = xAppUrl;
+                        
+                        // Fallback to Twitter app
+                        setTimeout(() => {
+                            const twitterAppUrl = `twitter://post?message=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+                            window.location.href = twitterAppUrl;
+                            
+                            // Final fallback to web after delay
+                            setTimeout(() => {
+                                window.open(twitterUrl, '_blank');
+                            }, 500);
+                        }, 300);
+                    } 
+                    // Try Twitter/X app on Android
+                    else if (/Android/i.test(userAgent)) {
+                        // Try X app first (newer name)
+                        const xAppUrl = `intent://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}#Intent;scheme=https;package=com.twitter.android;end`;
+                        window.location.href = xAppUrl;
+                        
+                        // Fallback to web after delay
                         setTimeout(() => {
                             window.open(twitterUrl, '_blank');
                         }, 500);
-                    } else if (/Android/i.test(userAgent)) {
-                        // Try Twitter app on Android
-                        const twitterAppUrl = `intent://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}#Intent;scheme=https;package=com.twitter.android;end`;
-                        window.location.href = twitterAppUrl;
-                        // Fallback to web after short delay
-                        setTimeout(() => {
-                            window.open(twitterUrl, '_blank');
-                        }, 500);
-                    } else {
-                        // Mobile but unknown platform, just open web
+                    } 
+                    // Fallback for other mobile devices
+                    else {
                         window.open(twitterUrl, '_blank');
                     }
+                    return;
                 }
             } catch (error) {
                 console.error('Error sharing to Twitter:', error);
