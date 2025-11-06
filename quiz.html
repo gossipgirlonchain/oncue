@@ -1009,16 +1009,53 @@
             try {
                 let imageBlob = null;
                 
-                // Get image blob
+                // Ensure canvas has the image drawn
                 if (canvas.width > 0 && canvas.height > 0) {
-                    imageBlob = await new Promise((resolve) => {
-                        canvas.toBlob((blob) => resolve(blob), 'image/png');
+                    // Canvas already has image, use it
+                    imageBlob = await new Promise((resolve, reject) => {
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                resolve(blob);
+                            } else {
+                                reject(new Error('Failed to convert canvas to blob'));
+                            }
+                        }, 'image/png');
+                    });
+                } else {
+                    // Canvas not ready, fetch image and draw to canvas first
+                    const response = await fetch(resultImage.src);
+                    imageBlob = await response.blob();
+                    
+                    // Draw to canvas for future copies
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    await new Promise((resolve, reject) => {
+                        img.onload = () => {
+                            const maxWidth = Math.min(600, window.innerWidth - 40);
+                            canvas.width = maxWidth;
+                            canvas.height = (img.height / img.width) * maxWidth;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            resolve();
+                        };
+                        img.onerror = reject;
+                        img.src = resultImage.src;
+                    });
+                    
+                    // Get blob from canvas now
+                    imageBlob = await new Promise((resolve, reject) => {
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                resolve(blob);
+                            } else {
+                                reject(new Error('Failed to convert canvas to blob'));
+                            }
+                        }, 'image/png');
                     });
                 }
                 
                 if (!imageBlob) {
-                    const response = await fetch(resultImage.src);
-                    imageBlob = await response.blob();
+                    throw new Error('Failed to get image blob');
                 }
                 
                 // Detect if we're on mobile
@@ -1036,11 +1073,10 @@
                             try {
                                 canShareFiles = navigator.canShare({ files: [file] });
                             } catch (e) {
-                                // Some browsers don't support canShare with files
                                 canShareFiles = true; // Try anyway
                             }
                         } else {
-                            canShareFiles = true; // Try anyway if canShare doesn't exist
+                            canShareFiles = true; // Try anyway
                         }
                         
                         if (canShareFiles) {
@@ -1052,40 +1088,48 @@
                             return;
                         }
                     } catch (shareError) {
-                        // User cancelled or error, continue to clipboard
                         if (shareError.name !== 'AbortError') {
                             console.log('Share failed:', shareError);
                         } else {
-                            // User cancelled
-                            return;
+                            return; // User cancelled
                         }
                     }
                 }
                 
                 // Desktop: Use Clipboard API directly (no share sheet)
                 // Mobile fallback: Try clipboard API if Web Share failed
-                try {
-                    const item = new ClipboardItem({ 'image/png': imageBlob });
-                    await navigator.clipboard.write([item]);
-                    showToast('Image copied to clipboard! 📋');
-                } catch (clipboardError) {
-                    // Fallback: open image in new tab for manual save
-                    const imageUrl = URL.createObjectURL(imageBlob);
-                    const newWindow = window.open(imageUrl, '_blank');
-                    if (newWindow) {
-                        showToast(isMobile ? 'Image opened - long press to save to Photos 📸' : 'Image opened - right-click to save 📥');
-                    } else {
-                        // Popup blocked, use download link
-                        const link = document.createElement('a');
-                        link.href = imageUrl;
-                        link.download = 'cue-predictor-result.png';
-                        link.click();
-                        showToast('Image download started! 📥');
-                        setTimeout(() => URL.revokeObjectURL(imageUrl), 100);
+                if (navigator.clipboard && navigator.clipboard.write) {
+                    try {
+                        const item = new ClipboardItem({ 'image/png': imageBlob });
+                        await navigator.clipboard.write([item]);
+                        showToast('Image copied to clipboard! 📋');
+                        return; // Success!
+                    } catch (clipboardError) {
+                        console.error('Clipboard API error:', clipboardError);
+                        // If ClipboardItem not supported, try alternative method
+                        if (clipboardError.name === 'TypeError' || clipboardError.message.includes('ClipboardItem')) {
+                            // Some browsers don't support ClipboardItem, try canvas copy
+                            try {
+                                // Copy canvas to clipboard using execCommand (fallback)
+                                canvas.select();
+                                document.execCommand('copy');
+                                showToast('Image copied to clipboard! 📋');
+                                return;
+                            } catch (execError) {
+                                console.error('execCommand failed:', execError);
+                            }
+                        }
                     }
                 }
+                
+                // Final fallback: show error message
+                showToast('Copy not supported. Right-click the image to save 📥');
+                console.error('All copy methods failed');
+                
             } catch (err) {
-                console.error('Error saving image:', err);
+                console.error('Error in copyImageToClipboard:', err);
+                const isMobile = /Mobi|Android/i.test(navigator.userAgent) || 
+                               (navigator.maxTouchPoints > 0 && /iPad|iPhone|iPod/.test(navigator.userAgent));
                 showToast(isMobile ? 'Tap and hold the image to save to Photos 📸' : 'Right-click the image to save 📥');
             }
         }
