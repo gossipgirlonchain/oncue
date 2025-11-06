@@ -249,15 +249,13 @@
         }
 
         .shareable-image {
-            background: white;
-            border: 2px solid #ced4da;
-            border-radius: 20px;
-            padding: 40px 20px;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0;
             margin: 30px 0;
-            box-shadow: 
-                0 4px 8px rgba(0, 0, 0, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.8);
-            min-height: 300px;
+            box-shadow: none;
+            min-height: auto;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -267,7 +265,14 @@
         .shareable-image canvas {
             max-width: 100%;
             height: auto;
-            border-radius: 10px;
+            border-radius: 0;
+        }
+        
+        .shareable-image img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 0;
         }
 
         .share-buttons {
