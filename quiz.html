@@ -267,7 +267,7 @@
         }
 
         .share-btn {
-            background: #1da1f2;
+            background: #FF53B9;
             color: white;
             border: none;
             padding: 16px 30px;
@@ -284,7 +284,7 @@
 
         .share-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3);
+            box-shadow: 0 4px 15px rgba(255, 83, 185, 0.4);
         }
 
         .copy-btn {
@@ -669,7 +669,7 @@
             </div>
             
             <div class="shareable-image" id="shareableImage">
-                <img id="resultImage" src="" alt="Quiz Result" style="max-width: 100%; height: auto; display: none;">
+                <img id="resultImage" src="" alt="Quiz Result" style="max-width: 100%; height: auto; display: block;">
                 <canvas id="resultCanvas" width="600" height="400" style="display: none;"></canvas>
             </div>
 
@@ -678,7 +678,7 @@
                     📋 Copy Image to Clipboard
                 </button>
                 <button class="share-btn" id="tweetBtn" onclick="shareToTwitter()">
-                    🐦 Share on Twitter
+                    Share to X
                 </button>
             </div>
         </div>
@@ -927,6 +927,9 @@
                 
                 const ctx = resultCanvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, resultCanvas.width, resultCanvas.height);
+            };
+            img.onerror = function() {
+                console.error('Failed to load image:', result.image);
             };
             img.src = result.image;
         }
