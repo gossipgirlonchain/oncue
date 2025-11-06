@@ -1192,76 +1192,44 @@
                     return;
                 }
                 
-                // Check if Web Share API is available (mobile only)
-                if (isMobile && navigator.share) {
-                    try {
-                        const file = new File([imageBlob], 'cue-result.png', { type: 'image/png' });
-                        
-                        // Check if we can share files
-                        let canShareFiles = false;
-                        if (navigator.canShare) {
-                            try {
-                                canShareFiles = navigator.canShare({ files: [file] });
-                            } catch (e) {
-                                // Some browsers don't support canShare with files
-                                canShareFiles = true; // Try anyway
-                            }
-                        } else {
-                            canShareFiles = true; // Try anyway if canShare doesn't exist
-                        }
-                        
-                        if (canShareFiles) {
-                            await navigator.share({
-                                files: [file],
-                                title: text,
-                                text: text,
-                                url: url
-                            });
-                            showToast('Shared! Select X/Twitter from menu 🐦');
-                            return;
-                        }
-                    } catch (shareError) {
-                        if (shareError.name !== 'AbortError') {
-                            console.log('Share failed, trying Twitter URL:', shareError);
-                        } else {
-                            // User cancelled
-                            return;
-                        }
-                    }
-                }
-                
-                // Fallback: Try to copy image and open Twitter
-                try {
-                    const item = new ClipboardItem({ 'image/png': imageBlob });
-                    await navigator.clipboard.write([item]);
-                    showToast('Image copied! Opening X... 📋');
-                } catch (e) {
-                    console.log('Clipboard not available');
-                }
-                
-                // Open Twitter/X - try Twitter app first, then web
+                // Build Twitter URL with pre-populated tweet
                 const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
                 
-                // Try Twitter app URL for mobile
-                const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-                if (/iPhone|iPod|iPad/i.test(userAgent)) {
-                    // Try Twitter app
-                    const twitterAppUrl = `twitter://post?message=${encodeURIComponent(text + ' ' + url)}`;
-                    window.location.href = twitterAppUrl;
-                    
-                    // Fallback to web after delay
-                    setTimeout(() => {
+                // Try to copy image to clipboard first (both desktop and mobile)
+                try {
+                    if (imageBlob && navigator.clipboard && navigator.clipboard.write) {
+                        const item = new ClipboardItem({ 'image/png': imageBlob });
+                        await navigator.clipboard.write([item]);
+                        showToast('Image copied! Opening X... 📋');
+                    }
+                } catch (e) {
+                    console.log('Clipboard copy failed, continuing to Twitter');
+                }
+                
+                // Open Twitter with pre-populated tweet
+                // Try Twitter app first on mobile, then fallback to web
+                if (isMobile) {
+                    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+                    if (/iPhone|iPod|iPad/i.test(userAgent)) {
+                        // Try Twitter app on iOS
+                        const twitterAppUrl = `twitter://post?message=${encodeURIComponent(text + ' ' + url)}`;
+                        window.location.href = twitterAppUrl;
+                        // Fallback to web after short delay
+                        setTimeout(() => {
+                            window.open(twitterUrl, '_blank');
+                        }, 500);
+                    } else if (/Android/i.test(userAgent)) {
+                        // Try Twitter app on Android
+                        const twitterAppUrl = `intent://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}#Intent;scheme=https;package=com.twitter.android;end`;
+                        window.location.href = twitterAppUrl;
+                        // Fallback to web after short delay
+                        setTimeout(() => {
+                            window.open(twitterUrl, '_blank');
+                        }, 500);
+                    } else {
+                        // Mobile but unknown platform, just open web
                         window.open(twitterUrl, '_blank');
-                    }, 500);
-                } else if (/Android/i.test(userAgent)) {
-                    // Try Twitter app
-                    const twitterAppUrl = `intent://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}#Intent;scheme=https;package=com.twitter.android;end`;
-                    window.location.href = twitterAppUrl;
-                    
-                    // Fallback to web after delay
-                    setTimeout(() => {
-                        window.open(twitterUrl, '_blank');
-                    }, 500);
+                    }
                 } else {
                     // Desktop - open in new tab
                     window.open(twitterUrl, '_blank');
