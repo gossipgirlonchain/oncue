@@ -1228,15 +1228,15 @@
                 
                 // Ensure canvas has the image drawn and is up to date
                 if (canvas.width > 0 && canvas.height > 0) {
-                    // If pfp was uploaded, ensure canvas is using full resolution base image
-                    if (uploadedPfp && currentResultImage) {
+                    // If pfp was uploaded or default exists, ensure canvas is using full resolution base image
+                    if ((uploadedPfp || defaultPfp) && currentResultImage && currentResult) {
                         const baseImg = new Image();
                         baseImg.crossOrigin = 'anonymous';
                         await new Promise((resolve, reject) => {
                             baseImg.onload = () => {
                                 canvas.width = baseImg.width;
                                 canvas.height = baseImg.height;
-                                compositeResultImage(baseImg, canvas);
+                                compositeResultImage(baseImg, canvas, currentResult);
                                 resolve();
                             };
                             baseImg.onerror = reject;
