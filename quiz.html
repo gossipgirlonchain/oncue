@@ -1702,35 +1702,37 @@
                     
                     // Try Twitter/X app on iOS
                     if (/iPhone|iPod|iPad/i.test(userAgent)) {
-                        // Try X app first (newer name)
-                        const xAppUrl = `x-twitter://post?message=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-                        window.location.href = xAppUrl;
+                        // Try multiple deep link formats for X/Twitter app
+                        // Format 1: twitter://status (most common)
+                        const twitterStatusUrl = `twitter://status?text=${encodeURIComponent(text + ' ' + url)}`;
+                        window.location.href = twitterStatusUrl;
                         
-                        // Fallback to Twitter app
+                        // Fallback: try twitter://post
                         setTimeout(() => {
-                            const twitterAppUrl = `twitter://post?message=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-                            window.location.href = twitterAppUrl;
+                            const twitterPostUrl = `twitter://post?message=${encodeURIComponent(text + ' ' + url)}`;
+                            window.location.href = twitterPostUrl;
                             
-                            // Final fallback to web after delay
+                            // Final fallback to web
                             setTimeout(() => {
-                                window.open(twitterUrl, '_blank');
+                                window.location.href = twitterUrl;
                             }, 500);
                         }, 300);
                     } 
                     // Try Twitter/X app on Android
                     else if (/Android/i.test(userAgent)) {
-                        // Try X app first (newer name)
-                        const xAppUrl = `intent://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}#Intent;scheme=https;package=com.twitter.android;end`;
-                        window.location.href = xAppUrl;
+                        // Use Android Intent to open Twitter/X app
+                        // Try with com.twitter.android package first
+                        const intentUrl = `intent://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}#Intent;scheme=https;package=com.twitter.android;S.browser_fallback_url=${encodeURIComponent(twitterUrl)};end`;
+                        window.location.href = intentUrl;
                         
                         // Fallback to web after delay
                         setTimeout(() => {
-                            window.open(twitterUrl, '_blank');
-                        }, 500);
+                            window.location.href = twitterUrl;
+                        }, 800);
                     } 
                     // Fallback for other mobile devices
                     else {
-                        window.open(twitterUrl, '_blank');
+                        window.location.href = twitterUrl;
                     }
                     return;
                 }
