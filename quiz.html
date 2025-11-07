@@ -90,6 +90,13 @@
             height: 50px;
             width: auto;
         }
+        
+        .pink-line {
+            width: 100%;
+            height: 2px;
+            background: #FF53B9;
+            margin-top: 10px;
+        }
 
         .quiz-header h1 {
             font-size: 28px;
@@ -287,7 +294,7 @@
             border: none;
             border-radius: 0;
             padding: 0;
-            margin: 5px 0 20px 0;
+            margin: 10px 0 30px 0;
             box-shadow: none;
             min-height: auto;
             display: flex;
@@ -318,15 +325,20 @@
         }
 
         .pfp-upload-section {
-            margin: 20px 0 20px 0;
+            margin: 30px 0 30px 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
+        }
+        
+        .pfp-buttons-container {
+            width: 100%;
+            max-width: 400px;
         }
         
         .copy-button-wrapper {
-            margin: 20px auto;
+            margin: 30px auto;
             width: 100%;
             max-width: 400px;
             display: flex;
@@ -374,8 +386,8 @@
         .share-buttons {
             display: flex !important;
             flex-direction: column !important;
-            gap: 10px;
-            margin: 20px auto !important;
+            gap: 15px;
+            margin: 30px auto !important;
             width: 100% !important;
             max-width: 400px !important;
             visibility: visible !important;
@@ -582,6 +594,7 @@
             <div class="logo">
                 <img src="oncueascii2.png" alt="CUE Logo">
             </div>
+            <div class="pink-line"></div>
         </div>
 
         <div class="progress-bar">
@@ -811,7 +824,7 @@
             </div>
 
             <div class="pfp-upload-section">
-                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <div class="pfp-buttons-container" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
                     <label for="pfpUpload" class="pfp-upload-btn">
                         📷 Upload Your Photo
                     </label>
@@ -1786,6 +1799,40 @@
                 toast.classList.remove('show');
             }, 3000);
         }
+        
+        // Check for skip parameter to go directly to result page
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const skipToResult = urlParams.get('skip');
+            const resultType = urlParams.get('result');
+            
+            if (skipToResult === 'true' || resultType) {
+                // Hide all questions and email collection
+                document.querySelectorAll('.question-container').forEach(q => q.classList.remove('active'));
+                document.querySelector('.email-collection-container')?.classList.remove('active');
+                
+                // Set a default result if specified, otherwise use first archetype
+                let result;
+                if (resultType && archetypes[resultType]) {
+                    result = archetypes[resultType];
+                } else {
+                    // Default to first archetype
+                    result = archetypes[Object.keys(archetypes)[0]];
+                }
+                
+                currentResult = result;
+                displayResultImage(result);
+                
+                const resultContainer = document.querySelector('.result-container');
+                resultContainer.classList.add('active');
+                
+                // Scroll to result
+                resultContainer.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start'
+                });
+            }
+        });
     </script>
 </body>
 </html>
