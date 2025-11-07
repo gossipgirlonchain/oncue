@@ -299,11 +299,19 @@
         }
 
         .result-title {
-            display: none !important;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #374151;
+            text-align: center;
         }
 
         .result-description {
-            display: none !important;
+            font-size: 18px;
+            line-height: 1.6;
+            color: #6b7280;
+            margin-bottom: 25px;
+            text-align: center;
         }
 
         .shareable-image {
@@ -835,6 +843,11 @@
 
         <!-- Result Screen -->
         <div class="result-container">
+            <div class="result-title" id="resultTitle">The Insider / Trend Oracle</div>
+            <div class="result-description" id="resultDescription">
+                Predicts the micro before it's macro. Hyper-online, culturally fluent, allergic to lag.
+            </div>
+            
             <div class="shareable-image" id="shareableImage">
                 <img id="resultImage" src="" alt="Quiz Result" style="max-width: 100%; height: auto; display: block;" loading="eager">
                 <canvas id="resultCanvas" width="600" height="400" style="display: none;"></canvas>
@@ -1145,6 +1158,10 @@
             document.querySelector('.email-collection-container')?.classList.remove('active');
             const result = calculateResult();
             currentResult = result; // Store current result for pfp compositing
+            
+            // Set the result title and description
+            document.getElementById('resultTitle').textContent = result.label;
+            document.getElementById('resultDescription').textContent = result.blurb;
             
             // Display the result image
             displayResultImage(result);
@@ -1838,6 +1855,11 @@
                 }
                 
                 currentResult = result;
+                
+                // Set the result title and description
+                document.getElementById('resultTitle').textContent = result.label;
+                document.getElementById('resultDescription').textContent = result.blurb;
+                
                 displayResultImage(result);
                 
                 const resultContainer = document.querySelector('.result-container');
