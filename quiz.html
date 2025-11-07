@@ -623,10 +623,6 @@
             </div>
         </div>
 
-        <div class="progress-bar">
-            <div class="progress-fill" id="progress"></div>
-        </div>
-
         <!-- Star Sign Question -->
         <div class="question-container active" data-question="-1">
             <div class="question-number">Question 0 of 13</div>
@@ -845,7 +841,7 @@
         <!-- Result Screen -->
         <div class="result-container">
             <div class="progress-bar">
-                <div class="progress-fill"></div>
+                <div class="progress-fill" id="progress"></div>
             </div>
             <div class="result-title" id="resultTitle">The Insider / Trend Oracle</div>
             <div class="result-description" id="resultDescription">
@@ -1088,7 +1084,10 @@
         function updateProgress() {
             const questionNum = currentQuestion + 1; // +1 because we start at -1
             const progress = (questionNum / (totalQuestions + 1)) * 100; // +1 for star sign
-            document.getElementById('progress').style.width = progress + '%';
+            const progressEl = document.getElementById('progress');
+            if (progressEl) {
+                progressEl.style.width = progress + '%';
+            }
             
             // Update question numbers
             document.querySelectorAll('.question-number').forEach(el => {
@@ -1106,8 +1105,11 @@
             // Show email collection
             const emailContainer = document.querySelector('.email-collection-container');
             emailContainer.classList.add('active');
-            // Set progress to 100%
-            document.getElementById('progress').style.width = '100%';
+            // Set progress to 100% (will show when results are displayed)
+            const progressEl = document.getElementById('progress');
+            if (progressEl) {
+                progressEl.style.width = '100%';
+            }
             // Scroll to email collection
             emailContainer.scrollIntoView({ 
                 behavior: 'smooth', 
