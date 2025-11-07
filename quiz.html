@@ -847,43 +847,43 @@
                 "label": "Trend Setter",
                 "signs": ["Gemini", "Libra", "Sagittarius"],
                 "blurb": "Predicts the micro before it's macro. Hyper-online, culturally fluent, allergic to lag.",
-                "image": "trendsetterpic.png",
-                "pfpCoords": { x: 671, y: 345, width: 372, height: 373 }
+                "image": "trendsettercontrarianpicnew.png",
+                "pfpCoords": { x: 4705, y: 833, width: 1094, height: 1140 }
             },
             "archivist": {
                 "label": "The Archivist",
                 "signs": ["Virgo", "Capricorn", "Cancer"],
                 "blurb": "Studies the past to forecast the future. Pattern-oriented, quietly confident.",
-                "image": "archivistpic.png",
-                "pfpCoords": { x: 673, y: 343, width: 372, height: 374 }
+                "image": "archivistcontrarianpicnew.png",
+                "pfpCoords": { x: 4705, y: 833, width: 1094, height: 1140 }
             },
             "analyst": {
                 "label": "The Investor",
                 "signs": ["Taurus", "Aquarius", "Virgo"],
                 "blurb": "Data-driven, skeptical, bets on reason not vibes. Treats markets like a culture ticker.",
-                "image": "investorpic.png",
-                "pfpCoords": { x: 671, y: 344, width: 372, height: 376 }
+                "image": "investorcontrarianpicnew.png",
+                "pfpCoords": { x: 4705, y: 833, width: 1094, height: 1140 }
             },
             "contrarian": {
                 "label": "The Contrarian",
                 "signs": ["Scorpio", "Aquarius", "Aries"],
                 "blurb": "If everyone's betting yes, they're betting no. Calls the flip.",
-                "image": "contrarianpic.png",
-                "pfpCoords": { x: 671, y: 348, width: 374, height: 374 }
+                "image": "contrarianpicnew.png",
+                "pfpCoords": { x: 4705, y: 833, width: 1094, height: 1140 }
             },
             "intuitive": {
                 "label": "The Manifestor",
                 "signs": ["Pisces", "Cancer", "Libra"],
                 "blurb": "Just feels it in the air. Follows mood more than metrics.",
-                "image": "manifestorpic.png",
-                "pfpCoords": { x: 671, y: 344, width: 372, height: 376 }
+                "image": "manifestorcontrarianpicnew.png",
+                "pfpCoords": { x: 4705, y: 833, width: 1094, height: 1140 }
             },
             "jokester": {
-                "label": "Tylenol addict",
+                "label": "Locked In",
                 "signs": ["Leo", "Sagittarius", "Gemini"],
                 "blurb": "Predicts for the plot. Loves volatility, memes, and wildcards.",
-                "image": "tylenolpic.png",
-                "pfpCoords": { x: 671, y: 345, width: 372, height: 373 }
+                "image": "lockedincontrarianpicnew.png",
+                "pfpCoords": { x: 4705, y: 833, width: 1094, height: 1140 }
             }
         };
         
@@ -1158,9 +1158,13 @@
             resultCanvas.style.display = 'none';
             resultImage.style.display = 'block';
             
+            // Add cache-busting to force reload of new images
+            const cacheBuster = '?v=' + Date.now();
+            const imageUrl = result.image + cacheBuster;
+            
             // Set the image source
-            resultImage.src = result.image;
-            currentResultImage = result.image;
+            resultImage.src = imageUrl;
+            currentResultImage = imageUrl; // Store with cache buster for consistency
             
             // Preload image for copying at FULL resolution
             const img = new Image();
@@ -1175,9 +1179,9 @@
                 compositeResultImage(img, resultCanvas, result);
             };
             img.onerror = function() {
-                console.error('Failed to load image:', result.image);
+                console.error('Failed to load image:', imageUrl);
             };
-            img.src = result.image;
+            img.src = imageUrl;
         }
 
         function compositeResultImage(baseImage, canvas, result) {
@@ -1256,7 +1260,10 @@
                             // Update the displayed image to show the composite
                             resultImage.src = resultCanvas.toDataURL('image/png');
                         };
-                        baseImg.src = currentResultImage || resultImage.src;
+                        // Add cache-busting to force fresh load
+                        const baseSrc = currentResultImage || resultImage.src;
+                        const separator = baseSrc.includes('?') ? '&' : '?';
+                        baseImg.src = baseSrc + separator + 'v=' + Date.now();
                     };
                     img.src = event.target.result;
                 };
@@ -1398,7 +1405,10 @@
                                 resolve();
                             };
                             baseImg.onerror = reject;
-                            baseImg.src = currentResultImage;
+                            // Add cache-busting to force fresh load
+                            const baseSrc = currentResultImage;
+                            const separator = baseSrc.includes('?') ? '&' : '?';
+                            baseImg.src = baseSrc + separator + 'v=' + Date.now();
                         });
                     }
                     
@@ -1415,7 +1425,10 @@
                 } else {
                     // Canvas not ready, fetch base image and draw to canvas at FULL resolution
                     // Use the original result image (not the composite data URL) to get full resolution
-                    const baseImageSrc = currentResultImage || resultImage.src;
+                    let baseImageSrc = currentResultImage || resultImage.src;
+                    // Add cache-busting to force fresh load
+                    const separator = baseImageSrc.includes('?') ? '&' : '?';
+                    baseImageSrc = baseImageSrc + separator + 'v=' + Date.now();
                     const response = await fetch(baseImageSrc);
                     imageBlob = await response.blob();
                     
@@ -1554,7 +1567,10 @@
                                 resolve();
                             };
                             baseImg.onerror = reject;
-                            baseImg.src = currentResultImage;
+                            // Add cache-busting to force fresh load
+                            const baseSrc = currentResultImage;
+                            const separator = baseSrc.includes('?') ? '&' : '?';
+                            baseImg.src = baseSrc + separator + 'v=' + Date.now();
                         });
                     }
                     
@@ -1565,7 +1581,10 @@
                 
                 if (!imageBlob) {
                     // Fallback: fetch base image and composite if needed
-                    const baseImageSrc = currentResultImage || resultImage.src;
+                    let baseImageSrc = currentResultImage || resultImage.src;
+                    // Add cache-busting to force fresh load
+                    const separator = baseImageSrc.includes('?') ? '&' : '?';
+                    baseImageSrc = baseImageSrc + separator + 'v=' + Date.now();
                     const response = await fetch(baseImageSrc);
                     imageBlob = await response.blob();
                     
