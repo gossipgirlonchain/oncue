@@ -274,6 +274,11 @@
         .result-container .progress-bar {
             margin: 0 -20px 20px -20px;
             width: calc(100% + 40px);
+            background: transparent;
+        }
+        
+        .result-container .progress-fill {
+            width: 100% !important;
         }
 
         .result-container.active {
@@ -842,7 +847,7 @@
         <!-- Result Screen -->
         <div class="result-container">
             <div class="progress-bar">
-                <div class="progress-fill" style="width: 100%;"></div>
+                <div class="progress-fill"></div>
             </div>
             <div class="result-title" id="resultTitle">The Insider / Trend Oracle</div>
             <div class="result-description" id="resultDescription">
