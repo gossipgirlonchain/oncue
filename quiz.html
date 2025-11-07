@@ -91,18 +91,6 @@
             width: auto;
         }
         
-        .result-container .pink-line {
-            width: calc(100% + 40px);
-            height: 5px;
-            background: linear-gradient(135deg, #FF53B9 0%, #e64aab 50%, #FF53B9 100%);
-            margin: 0 -20px 20px -20px;
-            border-radius: 0;
-            box-shadow: 
-                0 2px 4px rgba(255, 83, 185, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
 
         .quiz-header h1 {
             font-size: 28px;
@@ -274,12 +262,19 @@
         .result-container .progress-bar {
             margin: 0 -20px 20px -20px;
             width: calc(100% + 40px);
-            background: transparent;
+            background: transparent !important;
+            border: none !important;
+            height: 5px;
         }
         
         .result-container .progress-fill {
             width: 100% !important;
-            box-shadow: none !important;
+            height: 100%;
+            background: linear-gradient(135deg, #FF53B9 0%, #e64aab 50%, #FF53B9 100%) !important;
+            box-shadow: 
+                0 2px 4px rgba(255, 83, 185, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
         }
 
         .result-container.active {
