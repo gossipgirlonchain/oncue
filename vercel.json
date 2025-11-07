@@ -22,21 +22,12 @@
       "use": "@vercel/node"
     }
   ],
-  "redirects": [
-    {
-      "source": "/quiz",
-      "destination": "https://cue.market",
-      "permanent": true,
-      "statusCode": 301
-    },
-    {
-      "source": "/quiz/:path*",
-      "destination": "https://cue.market/:path*",
-      "permanent": true,
-      "statusCode": 301
-    }
-  ],
   "routes": [
+    {
+      "src": "/quiz",
+      "dest": "https://cue.market",
+      "status": 301
+    },
     {
       "src": "/",
       "dest": "/index.html"
