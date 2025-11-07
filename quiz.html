@@ -318,7 +318,7 @@
         }
 
         .pfp-upload-section {
-            margin: 15px 0 10px 0;
+            margin: 10px 0 5px 0;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -798,17 +798,8 @@
         <!-- Result Screen -->
         <div class="result-container">
             <div class="shareable-image" id="shareableImage">
-                <img id="resultImage" src="" alt="Quiz Result" style="max-width: 100%; height: auto; display: block;">
+                <img id="resultImage" src="" alt="Quiz Result" style="max-width: 100%; height: auto; display: block;" loading="eager">
                 <canvas id="resultCanvas" width="600" height="400" style="display: none;"></canvas>
-            </div>
-
-            <div class="share-buttons">
-                <button class="share-btn copy-btn" id="copyBtn">
-                    📋 Copy Image to Clipboard
-                </button>
-                <button class="share-btn" id="tweetBtn" onclick="shareToTwitter()">
-                    Share to X
-                </button>
             </div>
 
             <div class="pfp-upload-section">
@@ -820,6 +811,15 @@
                 </div>
                 <input type="file" id="pfpUpload" accept="image/*" style="display: none;">
                 <button class="pfp-remove-btn" id="removePfpBtn" style="display: none; margin-top: 10px;">Remove Photo</button>
+            </div>
+
+            <div class="share-buttons">
+                <button class="share-btn copy-btn" id="copyBtn">
+                    📋 Copy Image to Clipboard
+                </button>
+                <button class="share-btn" id="tweetBtn" onclick="shareToTwitter()">
+                    Share to X
+                </button>
             </div>
         </div>
     </div>
@@ -1152,12 +1152,12 @@
             // Add cache-busting to force reload of new images
             const cacheBuster = '?v=' + Date.now();
             const imageUrl = result.image + cacheBuster;
-            
-            // Set the image source
-            resultImage.src = imageUrl;
             currentResultImage = imageUrl; // Store with cache buster for consistency
             
-            // Preload image for copying at FULL resolution
+            // Set the display image source immediately for fast display
+            resultImage.src = imageUrl;
+            
+            // Preload image for copying at FULL resolution (runs in parallel)
             const img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = function() {
@@ -1172,6 +1172,7 @@
             img.onerror = function() {
                 console.error('Failed to load image:', imageUrl);
             };
+            // Start loading immediately (browser will cache and reuse)
             img.src = imageUrl;
         }
 
