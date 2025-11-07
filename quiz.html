@@ -91,7 +91,7 @@
             width: auto;
         }
         
-        .pink-line {
+        .result-container .pink-line {
             width: calc(100% + 40px);
             height: 5px;
             background: linear-gradient(135deg, #FF53B9 0%, #e64aab 50%, #FF53B9 100%);
@@ -104,7 +104,7 @@
             position: relative;
         }
         
-        .pink-line::before {
+        .result-container .pink-line::before {
             content: '';
             position: absolute;
             top: 0;
@@ -128,7 +128,7 @@
         }
 
         .progress-bar {
-            height: 6px;
+            height: 5px;
             background: #e0e0e0;
             margin: 0;
             position: relative;
@@ -136,9 +136,13 @@
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #FF53B9 0%, #ec4899 100%);
+            background: linear-gradient(135deg, #FF53B9 0%, #e64aab 50%, #FF53B9 100%);
             transition: width 0.3s ease;
             width: 0%;
+            box-shadow: 
+                0 2px 4px rgba(255, 83, 185, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
         }
 
         .question-container {
