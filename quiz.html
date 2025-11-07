@@ -943,13 +943,19 @@
         // Default profile picture
         let defaultPfp = null;
         const defaultPfpImg = new Image();
-        defaultPfpImg.crossOrigin = 'anonymous';
+        // Try with crossOrigin, but don't fail if it's not supported (X browser compatibility)
+        try {
+            defaultPfpImg.crossOrigin = 'anonymous';
+        } catch (e) {
+            console.log('crossOrigin not supported for default pfp');
+        }
         defaultPfpImg.onload = function() {
             defaultPfp = this;
             console.log('Default profile picture loaded');
         };
         defaultPfpImg.onerror = function() {
-            console.error('Failed to load default profile picture');
+            console.error('Failed to load default profile picture - will continue without it');
+            // Don't block quiz functionality if default pfp fails to load
         };
         // Add cache-busting query parameter to ensure latest version loads
         defaultPfpImg.src = 'defaultprofile.png?v=' + Date.now();
@@ -1223,20 +1229,38 @@
             const imageUrl = result.image + cacheBuster;
             currentResultImage = imageUrl; // Store with cache buster for consistency
             
+            // Set the display image source immediately for fast display (fallback)
+            resultImage.src = imageUrl;
+            
             // Preload image for copying at FULL resolution (runs in parallel)
             const img = new Image();
-            img.crossOrigin = 'anonymous';
+            // Try with crossOrigin, but fallback if it fails (for X browser and other embedded browsers)
+            try {
+                img.crossOrigin = 'anonymous';
+            } catch (e) {
+                console.log('crossOrigin not supported, using without it');
+            }
+            
             img.onload = function() {
-                // Use FULL resolution of the original image for copying (no scaling)
-                // This ensures high quality when copied to clipboard
-                resultCanvas.width = img.width;
-                resultCanvas.height = img.height;
-                
-                // Composite the image with default pfp automatically
-                compositeResultImage(img, resultCanvas, result);
-                
-                // Update the displayed image with the composited result (includes default pfp)
-                resultImage.src = resultCanvas.toDataURL('image/png');
+                try {
+                    // Use FULL resolution of the original image for copying (no scaling)
+                    // This ensures high quality when copied to clipboard
+                    resultCanvas.width = img.width;
+                    resultCanvas.height = img.height;
+                    
+                    // Composite the image with default pfp automatically
+                    compositeResultImage(img, resultCanvas, result);
+                    
+                    // Update the displayed image with the composited result (includes default pfp)
+                    const dataUrl = resultCanvas.toDataURL('image/png');
+                    if (dataUrl && dataUrl !== 'data:,') {
+                        resultImage.src = dataUrl;
+                    }
+                } catch (error) {
+                    console.error('Canvas operation failed:', error);
+                    // Fallback to base image if canvas operations fail (common in some mobile browsers)
+                    resultImage.src = imageUrl;
+                }
             };
             img.onerror = function() {
                 console.error('Failed to load image:', imageUrl);
@@ -1248,57 +1272,71 @@
         }
 
         function compositeResultImage(baseImage, canvas, result) {
-            const ctx = canvas.getContext('2d');
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            
-            // Draw the base result image
-            ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
-            
-            // Get the pfp coordinates for this specific archetype
-            const pfpCoords = result?.pfpCoords || null;
-            
-            // Determine which pfp to use (uploaded first, then default if available)
-            const pfpToUse = uploadedPfp || defaultPfp;
-            
-            // If we have a pfp and coordinates, overlay it on the exact coordinates
-            if (pfpToUse && pfpCoords) {
-                // Use exact pixel coordinates from the image
-                // Scale coordinates if canvas size differs from original image size
-                const scaleX = canvas.width / baseImage.width;
-                const scaleY = canvas.height / baseImage.height;
-                
-                const destX = pfpCoords.x * scaleX;
-                const destY = pfpCoords.y * scaleY;
-                const destWidth = pfpCoords.width * scaleX;
-                const destHeight = pfpCoords.height * scaleY;
-                
-                // Calculate aspect ratios
-                const sourceAspect = pfpToUse.width / pfpToUse.height;
-                const destAspect = destWidth / destHeight;
-                
-                // Crop source to match destination aspect ratio (centered crop)
-                let sourceX = 0;
-                let sourceY = 0;
-                let sourceWidth = pfpToUse.width;
-                let sourceHeight = pfpToUse.height;
-                
-                if (sourceAspect > destAspect) {
-                    // Source is wider - crop left/right (maintain height, crop width)
-                    sourceWidth = pfpToUse.height * destAspect;
-                    sourceX = (pfpToUse.width - sourceWidth) / 2;
-                } else {
-                    // Source is taller - crop top/bottom (maintain width, crop height)
-                    sourceHeight = pfpToUse.width / destAspect;
-                    sourceY = (pfpToUse.height - sourceHeight) / 2;
+            try {
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    console.error('Canvas context not available');
+                    return;
                 }
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
                 
-                // Draw the cropped portion to fill the destination rectangle (no distortion)
-                ctx.drawImage(
-                    pfpToUse,
-                    sourceX, sourceY, sourceWidth, sourceHeight, // Source crop
-                    destX, destY, destWidth, destHeight // Destination fill
-                );
+                // Draw the base result image
+                ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
+                
+                // Get the pfp coordinates for this specific archetype
+                const pfpCoords = result?.pfpCoords || null;
+                
+                // Determine which pfp to use (uploaded first, then default if available)
+                const pfpToUse = uploadedPfp || defaultPfp;
+                
+                // If we have a pfp and coordinates, overlay it on the exact coordinates
+                if (pfpToUse && pfpCoords) {
+                    try {
+                        // Use exact pixel coordinates from the image
+                        // Scale coordinates if canvas size differs from original image size
+                        const scaleX = canvas.width / baseImage.width;
+                        const scaleY = canvas.height / baseImage.height;
+                        
+                        const destX = pfpCoords.x * scaleX;
+                        const destY = pfpCoords.y * scaleY;
+                        const destWidth = pfpCoords.width * scaleX;
+                        const destHeight = pfpCoords.height * scaleY;
+                        
+                        // Calculate aspect ratios
+                        const sourceAspect = pfpToUse.width / pfpToUse.height;
+                        const destAspect = destWidth / destHeight;
+                        
+                        // Crop source to match destination aspect ratio (centered crop)
+                        let sourceX = 0;
+                        let sourceY = 0;
+                        let sourceWidth = pfpToUse.width;
+                        let sourceHeight = pfpToUse.height;
+                        
+                        if (sourceAspect > destAspect) {
+                            // Source is wider - crop left/right (maintain height, crop width)
+                            sourceWidth = pfpToUse.height * destAspect;
+                            sourceX = (pfpToUse.width - sourceWidth) / 2;
+                        } else {
+                            // Source is taller - crop top/bottom (maintain width, crop height)
+                            sourceHeight = pfpToUse.width / destAspect;
+                            sourceY = (pfpToUse.height - sourceHeight) / 2;
+                        }
+                        
+                        // Draw the cropped portion to fill the destination rectangle (no distortion)
+                        ctx.drawImage(
+                            pfpToUse,
+                            sourceX, sourceY, sourceWidth, sourceHeight, // Source crop
+                            destX, destY, destWidth, destHeight // Destination fill
+                        );
+                    } catch (error) {
+                        console.error('Error compositing profile picture:', error);
+                        // Continue without pfp overlay if it fails
+                    }
+                }
+            } catch (error) {
+                console.error('Error in compositeResultImage:', error);
+                // Function will return, base image should still display
             }
         }
 
