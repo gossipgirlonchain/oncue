@@ -270,6 +270,11 @@
             text-align: center;
             display: none;
         }
+        
+        .result-container .progress-bar {
+            margin: 0 -20px 20px -20px;
+            width: calc(100% + 40px);
+        }
 
         .result-container.active {
             display: block !important;
@@ -836,7 +841,9 @@
 
         <!-- Result Screen -->
         <div class="result-container">
-            <div class="pink-line"></div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 100%;"></div>
+            </div>
             <div class="result-title" id="resultTitle">The Insider / Trend Oracle</div>
             <div class="result-description" id="resultDescription">
                 Predicts the micro before it's macro. Hyper-online, culturally fluent, allergic to lag.
