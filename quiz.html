@@ -43,14 +43,14 @@
         .quiz-header {
             background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 20%, #e9ecef 80%, #dee2e6 100%);
             border-bottom: 2px solid #ced4da;
-            padding: 30px 20px;
+            padding: 15px 20px;
             text-align: center;
             position: relative;
         }
 
         .back-button {
             position: absolute;
-            top: 20px;
+            top: 10px;
             left: 20px;
             background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 20%, #e9ecef 80%, #dee2e6 100%);
             border: 1px solid #ced4da;
@@ -83,7 +83,7 @@
         }
 
         .logo {
-            margin-bottom: 15px;
+            margin-bottom: 5px;
         }
 
         .logo img {
@@ -249,7 +249,7 @@
         }
 
         .result-container {
-            padding: 40px 20px;
+            padding: 10px 20px 20px 20px;
             text-align: center;
             display: none;
         }
@@ -275,17 +275,11 @@
         }
 
         .result-title {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: #374151;
+            display: none !important;
         }
 
         .result-description {
-            font-size: 18px;
-            line-height: 1.6;
-            color: #6b7280;
-            margin-bottom: 30px;
+            display: none !important;
         }
 
         .shareable-image {
@@ -293,7 +287,7 @@
             border: none;
             border-radius: 0;
             padding: 0;
-            margin: 30px 0;
+            margin: 10px 0 20px 0;
             box-shadow: none;
             min-height: auto;
             display: flex;
@@ -316,7 +310,7 @@
         }
 
         .pfp-upload-section {
-            margin: 20px 0;
+            margin: 15px 0 10px 0;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -365,7 +359,7 @@
             display: flex !important;
             flex-direction: column !important;
             gap: 15px;
-            margin: 30px auto !important;
+            margin: 15px auto !important;
             width: 100% !important;
             max-width: 400px !important;
             visibility: visible !important;
@@ -375,13 +369,13 @@
         }
 
         .share-btn {
-            background: #FF53B9;
-            color: white;
+            background: #FF53B9 !important;
+            color: white !important;
             border: none;
-            padding: 16px 30px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
+            padding: 20px 40px !important;
+            border-radius: 16px;
+            font-size: 20px !important;
+            font-weight: 700 !important;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex !important;
@@ -389,16 +383,22 @@
             justify-content: center;
             gap: 10px;
             width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
             visibility: visible !important;
             opacity: 1 !important;
             position: relative !important;
             z-index: 10 !important;
-            min-height: 50px !important;
+            min-height: 60px !important;
+            box-shadow: 0 6px 20px rgba(255, 83, 185, 0.5) !important;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .share-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(255, 83, 185, 0.4);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(255, 83, 185, 0.6) !important;
+            background: #e64aab !important;
         }
 
         .copy-btn {
@@ -573,8 +573,6 @@
             <div class="logo">
                 <img src="oncueascii2.png" alt="CUE Logo">
             </div>
-            <h1>Let us predict you 👀</h1>
-            <p>Take the quiz to discover your prediction style</p>
         </div>
 
         <div class="progress-bar">
@@ -798,14 +796,18 @@
 
         <!-- Result Screen -->
         <div class="result-container">
-            <div class="result-title" id="resultTitle">The Insider / Trend Oracle</div>
-            <div class="result-description" id="resultDescription">
-                Predicts the micro before it's macro. Hyper-online, culturally fluent, allergic to lag.
-            </div>
-            
             <div class="shareable-image" id="shareableImage">
                 <img id="resultImage" src="" alt="Quiz Result" style="max-width: 100%; height: auto; display: block;">
                 <canvas id="resultCanvas" width="600" height="400" style="display: none;"></canvas>
+            </div>
+
+            <div class="share-buttons">
+                <button class="share-btn" id="tweetBtn" onclick="shareToTwitter()">
+                    🚀 Share to X
+                </button>
+                <button class="share-btn copy-btn" id="copyBtn">
+                    📋 Copy Image
+                </button>
             </div>
 
             <div class="pfp-upload-section">
@@ -817,15 +819,6 @@
                 </div>
                 <input type="file" id="pfpUpload" accept="image/*" style="display: none;">
                 <button class="pfp-remove-btn" id="removePfpBtn" style="display: none; margin-top: 10px;">Remove Photo</button>
-            </div>
-
-            <div class="share-buttons">
-                <button class="share-btn copy-btn" id="copyBtn">
-                    📋 Copy Image to Clipboard
-                </button>
-                <button class="share-btn" id="tweetBtn" onclick="shareToTwitter()">
-                    Share to X
-                </button>
             </div>
         </div>
     </div>
@@ -1111,9 +1104,6 @@
             const result = calculateResult();
             currentResult = result; // Store current result for pfp compositing
             
-            document.getElementById('resultTitle').textContent = result.label;
-            document.getElementById('resultDescription').textContent = result.blurb;
-            
             // Display the result image
             displayResultImage(result);
             
@@ -1333,7 +1323,6 @@
             };
             baseImg.src = currentResultImage || resultImage.src;
         }
-
         function generateShareableImage(result) {
             const canvas = document.getElementById('resultCanvas');
             const ctx = canvas.getContext('2d');
